@@ -5,48 +5,78 @@
 using namespace cv;
 
 ColorSegmenter::ColorSegmenter(){
+    histSize[0] = 64;
+    histSize[1] = 64;
+    colorspaceCode = CV_BGR2HSV;
+    c1range[0]=0; c1range[1]=180; c2range[0]=0; c2range[1]=256;
+    channels[0]=0; channels[1]=1;
+}
+  
+ColorSegmenter::ColorSegmenter(int code, const int* histogramSize){
+	histSize[0] = histogramSize[0];
+	histSize[1] = histogramSize[1];
+	colorspaceCode=code;
+	c1range[0]=0; c1range[1]=256; c2range[0]=0; c2range[1]=256;
+	channels[0]=0; channels[1]=1;
+	switch (code){
+	  case CV_BGR2HSV:
+	      c1range[1]=180; break;
+	  case CV_BGR2HLS:
+	      c1range[1]=180; break;
+	  case CV_BGR2YUV:
+	      channels[0]=1; channels[1]=2;
+	default:
+	   break;
+	}
 	initialized=false;
 }
 
-/* The extracted histogram assumes a YUV image */
+void ColorSegmenter::preprocess(const Mat image, Mat* outputImage){
+      cvtColor(image, *outputImage, colorspaceCode);
+      GaussianBlur(*outputImage, *outputImage, Size(7,7),0.2);
+}
+
 void ColorSegmenter::histFromImage(const Mat image)
 {
-	Mat yuv;
-	cvtColor(image, yuv, CV_BGR2HSV);
-	int histSize[] = {32, 32};
-	int channels[] = {0, 1};
-	float hranges[] = {0, 180};
-	float sranges[] = {0, 256};
-	const float* ranges[] = {hranges, sranges};
-	calcHist(&yuv, 1, channels, Mat(), histogram, 2, histSize, ranges, true, false);
+	Mat cvtImage;
+	preprocess(image, &cvtImage);
+	
+	const float* ranges[] = {c1range, c2range};
+	calcHist(&cvtImage, 1, channels, Mat(), histogram, 2, histSize, ranges, true, false);
 
 	double histMax = 0;
 	double histMin = 0;
 	minMaxLoc(histogram, &histMin, &histMax, NULL, NULL);
+	std::cout << "Range = (" << histMin << ", " << histMax <<  ")" << std::endl;
 	
-	normalizedHistogram = (histogram-histMin)/(histMax-histMin);
+	histogram.convertTo(normalizedHistogram,CV_32F,1/(histMax-histMin),-histMin/(histMax-histMin));
 	initialized=true;
+	
+	/*std::cout << "Histogram: " << histogram.depth() << ", " << histogram.channels() << std::endl;
+	std::cout << "Normalized histogram: " << normalizedHistogram.depth() << ", " << normalizedHistogram.channels() << std::endl;
+	minMaxLoc(normalizedHistogram, &histMin, &histMax, NULL, NULL);
+	std::cout << "Range = (" << histMin << ", " << histMax <<  ")" << std::endl;*/
+	
+	
 };
 
 void ColorSegmenter::updateHistogram(const Mat image, const Mat mask)
 {
 	float alpha = 0.1; //learning coefficient
 	
-	Mat yuv;
-	cvtColor(image, yuv, CV_BGR2HSV);
-	int histSize[] = {32, 32};
-	int channels[] = {0, 1};
-	float hranges[] = {0, 180};
-	float sranges[] = {0, 256};
-	const float* ranges[] = {hranges, sranges};
-	calcHist(&yuv, 1, channels, mask, histogram, 2, histSize, ranges, true, false);
+	Mat cvtImage;
+	preprocess(image, &cvtImage);
+	
+	const float* ranges[] = {c1range, c2range};
+	calcHist(&cvtImage, 1, channels, mask, histogram, 2, histSize, ranges, true, false);
 
 	
 	double histMax = 0;
 	double histMin = 0;
 	minMaxLoc(histogram, &histMin, &histMax, NULL, NULL);
 	
-	Mat newNormalizedHistogram = (histogram-histMin)/(histMax-histMin);
+	Mat newNormalizedHistogram;
+	histogram.convertTo(newNormalizedHistogram,CV_32F,1/(histMax-histMin),-histMin/(histMax-histMin));
 	
 	if (initialized){
 	normalizedHistogram = normalizedHistogram * (1-alpha) 
@@ -59,18 +89,11 @@ void ColorSegmenter::updateHistogram(const Mat image, const Mat mask)
 
 void ColorSegmenter::backPropHist(const Mat image, Mat* outputImage)
 {
-	Mat yuv;
-	cvtColor(image, yuv, CV_BGR2HSV);
-	int histSize[] = {32, 32};
-	int channels[] = {0, 1};
-	float hranges[] = {0, 180};
-	float sranges[] = {0, 256};
-	const float* ranges[] = {hranges, sranges};
-	calcBackProject(&yuv, 1, channels, histogram, *outputImage, ranges, 1, true);
-	/*double histMax = 0;
-	double histMin = 0;
-	minMaxLoc(*outputImage, &histMin, &histMax, NULL, NULL);
-	std::cout << histMin << ", " << histMax << std::endl;*/
+	Mat cvtImage;
+	preprocess(image, &cvtImage);
+	
+	const float* ranges[] = {c1range, c2range};
+	calcBackProject(&cvtImage, 1, channels, normalizedHistogram, *outputImage, ranges, 255, true);
 	
 	return;
 }

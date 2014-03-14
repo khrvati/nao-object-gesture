@@ -25,21 +25,22 @@ bool drawRectangle = false;
 bool updateHist = false;
 bool showSegmented = false;
 Rect imageROI;
-ColorSegmenter seg;
+int hSize[] = {64,64};
+ColorSegmenter seg(CV_BGR2YUV, hSize);
 
 int main(void)
 {
-	VideoCapture capture;
+    VideoCapture capture;
     Mat frame;
-	capture.open( -1 );
+    capture.open( -1 );
     if (!capture.isOpened()) 
     {
-		printf("--(!)Error opening video capture\n");
-		return -1; 
-	}
-	
-	namedWindow(window_name);
-	setMouseCallback(window_name, RectangleMouseCallback, 0);
+	printf("--(!)Error opening video capture\n");
+	return -1; 
+    }
+    
+    namedWindow(window_name);
+    setMouseCallback(window_name, RectangleMouseCallback, 0);
 	
     while (capture.read(frame))
     {
@@ -67,7 +68,7 @@ int main(void)
 		}
 		else { imshow( window_name, frame );}
         int c = waitKey(10);
-        if((char)c == 27) {break;} // escape
+	if((char)c == 27) {break;} // escape
     }
 	
 	return 0;
