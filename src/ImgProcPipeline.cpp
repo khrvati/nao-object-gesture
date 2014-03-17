@@ -1,5 +1,5 @@
 #include "opencv2/imgproc/imgproc.hpp"
-#include "ColorSegmenter.hpp"
+#include "ImgProcPipeline.hpp"
 #include <iostream>
 
 using namespace cv;
@@ -10,6 +10,7 @@ ColorSegmenter::ColorSegmenter(){
     colorspaceCode = CV_BGR2HSV;
     c1range[0]=0; c1range[1]=180; c2range[0]=0; c2range[1]=256;
     channels[0]=0; channels[1]=1;
+    initialized=false;
 }
   
 ColorSegmenter::ColorSegmenter(int code, const int* histogramSize){
@@ -87,10 +88,10 @@ void ColorSegmenter::updateHistogram(const Mat image, const Mat mask)
 		}
 }
 
-void ColorSegmenter::backPropHist(const Mat image, Mat* outputImage)
+void ColorSegmenter::process(const Mat inputImage, Mat* outputImage)
 {
 	Mat cvtImage;
-	preprocess(image, &cvtImage);
+	preprocess(inputImage, &cvtImage);
 	
 	const float* ranges[] = {c1range, c2range};
 	calcBackProject(&cvtImage, 1, channels, normalizedHistogram, *outputImage, ranges, 255, true);
