@@ -1,6 +1,8 @@
-add_library(ColorSegmenter STATIC ColorSegmenter.cpp)
-add_executable(main main.cpp)
+add_library(ImgProcPipeline STATIC ImgProcPipeline.cpp)
+target_link_libraries(ImgProcPipeline ${OpenCV_LIBS})
 
-target_link_libraries(ColorSegmenter ${OpenCV_LIBS})
-target_link_libraries(main ${OpenCV_LIBS})
-target_link_libraries(main ColorSegmenter)
+add_library(DisplayWindow STATIC DisplayWindow.cpp)
+target_link_libraries(DisplayWindow ${OpenCV_LIBS} ImgProcPipeline)
+
+add_executable(main main.cpp)
+target_link_libraries(main ${OpenCV_LIBS} DisplayWindow ImgProcPipeline)

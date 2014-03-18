@@ -16,7 +16,6 @@
 using namespace std;
 using namespace cv;
 
-
 int main(void)
 {
     VideoCapture capture;
@@ -28,15 +27,30 @@ int main(void)
 	return -1; 
     }
     
-    int hSize[] = {64,64};
-    ColorSegmenter seg(CV_BGR2YUV, hSize);
-    ProcessingElement *generalPtr = static_cast<ProcessingElement*>(&seg);
-    
+    int hSize[] = {32,32};
     vector<ProcessingElement*> pipeline;
+    
+    ColorHistBackProject seg(CV_BGR2HSV, hSize);
+    ProcessingElement *generalPtr = static_cast<ProcessingElement*>(&seg);
     pipeline.push_back(generalPtr);
+    
+    BayesColorHistBackProject bayesSeg(CV_BGR2HSV, hSize);
+    generalPtr = static_cast<ProcessingElement*>(&bayesSeg);
+    pipeline.push_back(generalPtr);
+    
+    SimpleThresholder thresh(0.4);
+    generalPtr = static_cast<ProcessingElement*>(&thresh);
+    pipeline.push_back(generalPtr);
+    
+    vector<vector<int>> pipelineIdVector;
+    vector<int> temp = {0,2};
+    pipelineIdVector.push_back(temp);
+    temp = {1,2};
+    pipelineIdVector.push_back(temp);
+    
     String windowname="Color Histogram Backpropagation";
     
-    DisplayWindow window(windowname, pipeline);
+    DisplayWindow window(windowname, pipeline,pipelineIdVector);
     
     while (capture.read(frame))
     {

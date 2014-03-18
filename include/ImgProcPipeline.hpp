@@ -17,7 +17,8 @@ class ProcessingElement{
 /**
  * 2D histogram-based image flattening class. Supports HSV, HLS and YUV colorspaces.
  */
-class ColorSegmenter : public ProcessingElement{
+class ColorHistBackProject : public ProcessingElement{
+    protected:
 	Mat histogram;
 	Mat normalizedHistogram;
 	int colorspaceCode;
@@ -26,15 +27,33 @@ class ColorSegmenter : public ProcessingElement{
 	float c1range[2];
 	float c2range[2];
 	void preprocess(const Mat image, Mat* outputImage);
-	
-	public:
-		//bool initialized;
-		ColorSegmenter();
-		ColorSegmenter(int code, const int* histogramSize);
-		void histFromImage(const Mat image);	
-		void updateHistogram(const Mat image, const Mat mask);
-		void process(const Mat inputImage, Mat* outputImage);
+    public:
+	//bool initialized;
+	ColorHistBackProject();
+	ColorHistBackProject(int code, const int* histogramSize);
+	ColorHistBackProject(int code, const int* histogramSize, String filename);
+	virtual void histFromImage(const Mat image);	
+	void updateHistogram(const Mat image, const Mat mask);
+	virtual void process(const Mat inputImage, Mat* outputImage);
 };
+
+class BayesColorHistBackProject : public ColorHistBackProject{
+    public:
+      void histFromImage(const Mat image);
+      void process(const Mat inputImage, Mat* outputImage);
+      BayesColorHistBackProject(int code, const int* histogramSize) : ColorHistBackProject(code, histogramSize) {};
+      BayesColorHistBackProject(int code, const int* histogramSize, String filename) : ColorHistBackProject(code, histogramSize,filename) {};
+};
+
+class SimpleThresholder : public ProcessingElement{
+    float thresholdValue;
+    public:
+	SimpleThresholder();
+	SimpleThresholder(float threshValue);
+	void process(const Mat inputImage, Mat* outputImage);
+};
+
+
 #endif
 
 

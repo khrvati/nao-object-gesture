@@ -12,11 +12,12 @@ DisplayWindow::DisplayWindow(String name){
   rightDrag=false;
   dragging = false;
   clickTime = std::chrono::system_clock::now();
+  mode=0;
   namedWindow(name);
   setMouseCallback(name, staticMouseCallback, this);
 }
 
-DisplayWindow::DisplayWindow(String name, std::vector<ProcessingElement*> prcElm){
+DisplayWindow::DisplayWindow(String name, std::vector<ProcessingElement*> prcElm, std::vector<std::vector<int>> pipelineVec){
   windowName=name;
   dragStartL = Point(-1,-1);
   dragStartR = Point(-1,-1);
@@ -25,7 +26,9 @@ DisplayWindow::DisplayWindow(String name, std::vector<ProcessingElement*> prcElm
   rightDrag=false;
   dragging = false;
   processingElements = prcElm;
+  pipelineVector = pipelineVec;
   clickTime = std::chrono::system_clock::now();
+  mode=0;
   namedWindow(name);
   setMouseCallback(name, staticMouseCallback, this);
 }
@@ -34,15 +37,21 @@ void DisplayWindow::display(const Mat image){
    Mat endImage;
    image.copyTo(lastDispImg);
    image.copyTo(endImage);
-   if (view.size()>0){
-      for (int i=0; i<view.size(); i++){
-	  if (processingElements[i]->initialized){
-	      processingElements[i]->process(endImage, &endImage);
+   if (mode!=0){
+      std::vector<int> pipe = pipelineVector[mode-1]; 
+      for (int i=0; i<pipe.size(); i++){
+	  if (processingElements[pipe[i]]->initialized){
+	      processingElements[pipe[i]]->process(endImage, &endImage);
 	  }
 	  else{image.copyTo(endImage); break;}
       }
+      endImage = endImage;
    }
-   if (dragging && view.size()==0){
+   else {
+	//GaussianBlur(endImage, endImage, Size(15,15),0); 
+	medianBlur(endImage, endImage, 7);
+   }
+   if (dragging && mode==0){
       rectangle(endImage, dragStartL, currentPos, Scalar(0,0,255));
    }
    imshow(windowName,endImage);
@@ -89,11 +98,11 @@ void DisplayWindow::onLeftClick(){
 }
 
 void DisplayWindow::onRightClick(){
-    if (view.size()==0){
-	view.push_back(0);;
+    if (mode==pipelineVector.size()){
+	mode=0;
     }
     else {
-      view.clear();;
+	mode++;
     }
 }
 
@@ -106,7 +115,9 @@ void DisplayWindow:: onDragStop(){
       int height=abs(dragStartL.y-currentPos.y);
       Rect imageROI = Rect(x,y,width,height);
       Mat subimage(lastDispImg, imageROI);
-      ColorSegmenter *temp = static_cast<ColorSegmenter*>(processingElements[0]);
+      ColorHistBackProject *temp = static_cast<ColorHistBackProject*>(processingElements[0]);
+      temp->histFromImage(subimage);
+      temp = static_cast<ColorHistBackProject*>(processingElements[1]);
       temp->histFromImage(subimage);
       }
       catch(Exception e)
