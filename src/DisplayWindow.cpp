@@ -119,6 +119,8 @@ void DisplayWindow:: onDragStop(){
       temp->histFromImage(subimage);
       temp = static_cast<ColorHistBackProject*>(processingElements[1]);
       temp->histFromImage(subimage);
+      temp = static_cast<ColorHistBackProject*>(processingElements[2]);
+      temp->histFromImage(subimage);
       }
       catch(Exception e)
       {

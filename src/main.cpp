@@ -38,14 +38,21 @@ int main(void)
     generalPtr = static_cast<ProcessingElement*>(&bayesSeg);
     pipeline.push_back(generalPtr);
     
+    int hSize2[] = {128,128};
+    GMMColorHistBackProject GMMSeg(CV_BGR2HSV, hSize2);
+    generalPtr = static_cast<ProcessingElement*>(&GMMSeg);
+    pipeline.push_back(generalPtr);
+    
     SimpleThresholder thresh(0.4);
     generalPtr = static_cast<ProcessingElement*>(&thresh);
     pipeline.push_back(generalPtr);
     
     vector<vector<int>> pipelineIdVector;
-    vector<int> temp = {0,2};
+    vector<int> temp = {0};
     pipelineIdVector.push_back(temp);
-    temp = {1,2};
+    temp = {1};
+    pipelineIdVector.push_back(temp);
+    temp = {2};
     pipelineIdVector.push_back(temp);
     
     String windowname="Color Histogram Backpropagation";
