@@ -30,29 +30,33 @@ int main(void)
     int hSize[] = {32,32};
     vector<ProcessingElement*> pipeline;
     
-    ColorHistBackProject seg(CV_BGR2HSV, hSize);
+    ColorHistBackProject seg(CV_BGR2HLS, hSize);
     ProcessingElement *generalPtr = static_cast<ProcessingElement*>(&seg);
     pipeline.push_back(generalPtr);
     
-    BayesColorHistBackProject bayesSeg(CV_BGR2HSV, hSize);
+    BayesColorHistBackProject bayesSeg(CV_BGR2HLS, hSize);
     generalPtr = static_cast<ProcessingElement*>(&bayesSeg);
     pipeline.push_back(generalPtr);
     
-    int hSize2[] = {128,128};
-    GMMColorHistBackProject GMMSeg(CV_BGR2HSV, hSize2);
+    int hSize2[] = {128, 128};
+    GMMColorHistBackProject GMMSeg(CV_BGR2HLS, hSize2);
     generalPtr = static_cast<ProcessingElement*>(&GMMSeg);
     pipeline.push_back(generalPtr);
     
-    SimpleThresholder thresh(0.4);
+    SimpleThresholder thresh(0.2);
     generalPtr = static_cast<ProcessingElement*>(&thresh);
     pipeline.push_back(generalPtr);
     
+    SimpleBlobDetect sbd;
+    generalPtr = static_cast<ProcessingElement*>(&sbd);
+    pipeline.push_back(generalPtr);
+    
     vector<vector<int>> pipelineIdVector;
-    vector<int> temp = {0};
+    vector<int> temp = {0,3,4};
     pipelineIdVector.push_back(temp);
-    temp = {1};
+    temp = {1,3,4};
     pipelineIdVector.push_back(temp);
-    temp = {2};
+    temp = {2,3,4};
     pipelineIdVector.push_back(temp);
     
     String windowname="Color Histogram Backpropagation";

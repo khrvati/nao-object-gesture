@@ -85,6 +85,12 @@ class SimpleThresholder : public ProcessingElement{
 	void process(const Mat inputImage, Mat* outputImage);
 };
 
+class SimpleBlobDetect : public ProcessingElement{
+    public:
+	SimpleBlobDetect();
+	void process(const Mat inputImage, Mat* outputImage);
+  
+};
 
 #endif
 

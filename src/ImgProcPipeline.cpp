@@ -24,7 +24,7 @@ GaussianMixtureModel::GaussianMixtureModel(int dims, int K){
 
 /* matrix samples is a N X (M+1) matrix, consisting of N M-dimensional samples. The last row-element is the number of identical samples*/
 void GaussianMixtureModel::runExpectationMaximization(const Mat samples, int maxIterations, double minStepIncrease){
-    if (!initialized){
+    if (true){
 	//componentProbability = Mat::ones(samples.rows, components, CV_64F)/(1.0*components);
 	initialized = true;
 	
@@ -299,6 +299,7 @@ void ColorHistBackProject::preprocess(const Mat image, Mat* outputImage){
       //medianBlur(image, *outputImage, 7);
       cvtColor(image, *outputImage, colorspaceCode);
       medianBlur(*outputImage, *outputImage, 5);
+      //blur(*outputImage, *outputImage, Size(5,5));
 }
 
 void ColorHistBackProject::histFromImage(const Mat image){
@@ -378,10 +379,10 @@ void BayesColorHistBackProject::process(const Mat inputImage, Mat* outputImage){
 	
 	minMaxLoc(aprioriColor, &histMin, &histMax, NULL, NULL);
 	
-	*outputImage = *outputImage*0.5/aprioriColor;
+	*outputImage = *outputImage/aprioriColor;
 	minMaxLoc(*outputImage, &histMin, &histMax, NULL, NULL);
 
-	//outputImage->convertTo(*outputImage,CV_32F,1/(histMax-histMin),-histMin/(histMax-histMin));
+	outputImage->convertTo(*outputImage,CV_32F,1/(histMax-histMin),-histMin/(histMax-histMin));
 	
 	//aprioriColor.copyTo(*outputImage);
 	
@@ -426,7 +427,29 @@ void GMMColorHistBackProject::process(const Mat inputImage, Mat* outputImage){
 	gmm->lookup.convertTo(temp, CV_32F);
 	calcBackProject(&cvtImage, 1, channels, temp, *outputImage, ranges, 1.0, true);
 	
-	outputImage->convertTo(*outputImage, CV_32FC1);	
+	Mat imgHist;
+	calcHist(&cvtImage, 1, channels, Mat(), imgHist, 2, histSize, ranges, true, false);
+	double histMax = 0;
+	double histMin = 0;
+	minMaxLoc(imgHist, &histMin, &histMax, NULL, NULL);
+	imgHist.convertTo(imgHist,CV_32F,1/(histMax-histMin),-histMin/(histMax-histMin));
+	imgHist *= 1.0/norm(sum(imgHist));
+	Mat aprioriColor;
+	calcBackProject(&cvtImage, 1, channels, imgHist, aprioriColor, ranges, 255, true);
+	
+	outputImage->convertTo(*outputImage, CV_32FC1, 1.0/255.0);
+	aprioriColor.convertTo(aprioriColor, CV_32FC1, 1.0/255.0);
+	
+	minMaxLoc(aprioriColor, &histMin, &histMax, NULL, NULL);
+	
+	*outputImage = *outputImage/aprioriColor;
+	minMaxLoc(*outputImage, &histMin, &histMax, NULL, NULL);
+
+	outputImage->convertTo(*outputImage,CV_32F,1/(histMax-histMin),-histMin/(histMax-histMin));
+	
+	
+	
+	//outputImage->convertTo(*outputImage, CV_32FC1);	
 	//outputImage->convertTo(*outputImage, CV_64F);	
 }
 
@@ -469,11 +492,61 @@ SimpleThresholder::SimpleThresholder(float threshValue){
 }
 
 void SimpleThresholder::process(const Mat inputImage, Mat* outputImage){
-    threshold(inputImage, *outputImage, thresholdValue, 1.0, THRESH_BINARY);
-    Mat element = getStructuringElement(MORPH_RECT, Size(5,5));
+    //threshold(*outputImage, *outputImage, thresholdValue, 1.0, THRESH_BINARY);
+    
+    inputImage.convertTo(*outputImage, CV_8U,255,0);
+    adaptiveThreshold(*outputImage, *outputImage, 255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY, 15, 0.0);
+    outputImage->convertTo(*outputImage, CV_32F, 1/255.0,0.0);
+    
+    /*Mat element = getStructuringElement(MORPH_RECT, Size(5,5));
     erode(*outputImage, *outputImage, element);
-    dilate(*outputImage, *outputImage, element);
-    element = getStructuringElement(MORPH_ELLIPSE, Size(7,7));
+    dilate(*outputImage, *outputImage, element);*/
+    Mat element = getStructuringElement(MORPH_ELLIPSE, Size(7,7));
     dilate(*outputImage, *outputImage, element);
     erode(*outputImage, *outputImage, element);
 }
+
+
+  
+
+SimpleBlobDetect::SimpleBlobDetect(){
+    initialized = true;
+}
+
+void SimpleBlobDetect::process(const Mat inputImage, Mat* outputImage){
+    vector<vector<Point> > contours;
+    vector<Vec4i> hierarchy;
+    Mat conv(inputImage.size(), CV_8U);
+    inputImage.convertTo(conv, CV_8U);
+    findContours(conv, contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
+    Mat temp = Mat::zeros(inputImage.size(), CV_8UC3);
+    double area = contourArea(contours[0], false);
+    double maxarea = area;
+    double minarea = area;
+    for( int i = 1; i< contours.size(); i++ ){
+        area = contourArea(contours[i], false);
+	if (area > maxarea){maxarea = area;}
+	if (area < minarea){minarea = area;}
+    }
+    
+    
+    for( int i = 0; i< contours.size(); i++ ){
+      Scalar color = Scalar(0, 0, 255);
+      switch (i%6){
+	case 0: color = Scalar(0,0,255); break;
+	case 1: color = Scalar(0,255,255); break;
+	case 2: color = Scalar(0,255,0); break;
+	case 3: color = Scalar(255,255,0); break;
+	case 4: color = Scalar(255,0,0); break;
+	case 5: color = Scalar(255,0,255); break;
+      }
+      area = contourArea(contours[i], false);
+      if ((area-minarea)/(maxarea-minarea)>0.5){
+	  drawContours(temp, contours, i, color, 2, 8);
+      }
+    }
+    temp.copyTo(*outputImage);
+}
+
+
+
