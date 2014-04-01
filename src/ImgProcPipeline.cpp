@@ -266,6 +266,8 @@ ColorHistBackProject::ColorHistBackProject(int code, const int* histogramSize){
 	  case CV_BGR2HLS:
 	      c1range[1]=180; break;
 	  case CV_BGR2YUV:
+	      channels[0]=1; channels[1]=2; break;
+	  case CV_BGR2Lab:
 	      channels[0]=1; channels[1]=2;
 	default:
 	   break;
@@ -297,8 +299,33 @@ ColorHistBackProject::ColorHistBackProject(int code, const int* histogramSize, S
 void ColorHistBackProject::preprocess(const Mat image, Mat* outputImage){
       //GaussianBlur(image, *outputImage, Size(15,15),0);
       //medianBlur(image, *outputImage, 7);
-      cvtColor(image, *outputImage, colorspaceCode);
-      medianBlur(*outputImage, *outputImage, 5);
+      
+      bilateralFilter(image, *outputImage, 5, 60, 60);
+      cvtColor(*outputImage, *outputImage, colorspaceCode);
+      
+      Mat temp;
+      Scalar lowRange;
+      Scalar highRange;
+	
+	switch (colorspaceCode){
+	  case CV_BGR2HSV:
+	      lowRange = Scalar(0,25,40);
+	      highRange = Scalar(255,255,255);  break;
+	  case CV_BGR2HLS:
+	      lowRange = Scalar(0,40,10); 
+	      highRange = Scalar(255,150,255); break;
+	  case CV_BGR2YUV:
+	      lowRange = Scalar(25,0,0); 
+	      highRange = Scalar(230,255,255);  break;
+	  case CV_BGR2Lab:
+	      lowRange = Scalar(25,0,0); highRange = Scalar(230,255,255);  break;
+	default:
+	   break;
+	}
+	
+      inRange(*outputImage, lowRange, highRange, histogramMask);
+      
+      //medianBlur(*outputImage, *outputImage, 5);
       //blur(*outputImage, *outputImage, Size(5,5));
 }
 
@@ -307,8 +334,8 @@ void ColorHistBackProject::histFromImage(const Mat image){
 	preprocess(image, &cvtImage);
 	
 	const float* ranges[] = {c1range, c2range};
-	calcHist(&cvtImage, 1, channels, Mat(), histogram, 2, histSize, ranges, true, false);
-
+	calcHist(&cvtImage, 1, channels, histogramMask, histogram, 2, histSize, ranges, true, false);
+	
 	double histMax = 0;
 	double histMin = 0;
 	minMaxLoc(histogram, &histMin, &histMax, NULL, NULL);
@@ -350,7 +377,6 @@ void ColorHistBackProject::process(const Mat inputImage, Mat* outputImage){
 	
 	const float* ranges[] = {c1range, c2range};
 	calcBackProject(&cvtImage, 1, channels, normalizedHistogram, *outputImage, ranges, 255, true);
-	
 	outputImage->convertTo(*outputImage, CV_32FC1, 1.0/255.0);	
 }
 
@@ -394,7 +420,7 @@ void BayesColorHistBackProject::histFromImage(const Mat image){
 	preprocess(image, &cvtImage);
 	
 	const float* ranges[] = {c1range, c2range};
-	calcHist(&cvtImage, 1, channels, Mat(), histogram, 2, histSize, ranges, true, false);
+	calcHist(&cvtImage, 1, channels, histogramMask, histogram, 2, histSize, ranges, true, false);
 
 	double histMax = 0;
 	double histMin = 0;
@@ -435,13 +461,18 @@ void GMMColorHistBackProject::process(const Mat inputImage, Mat* outputImage){
 	imgHist.convertTo(imgHist,CV_32F,1/(histMax-histMin),-histMin/(histMax-histMin));
 	imgHist *= 1.0/norm(sum(imgHist));
 	Mat aprioriColor;
-	calcBackProject(&cvtImage, 1, channels, imgHist, aprioriColor, ranges, 255, true);
+	calcBackProject(&cvtImage, 1, channels, imgHist, aprioriColor, ranges, 255.0, true);
 	
 	outputImage->convertTo(*outputImage, CV_32FC1, 1.0/255.0);
 	aprioriColor.convertTo(aprioriColor, CV_32FC1, 1.0/255.0);
 	
 	minMaxLoc(aprioriColor, &histMin, &histMax, NULL, NULL);
+	//aprioriColor.convertTo(aprioriColor,CV_32F,1/(histMax-histMin),-histMin/(histMax-histMin));
 	
+	blur(*outputImage, *outputImage, Size(3,3));
+	blur(aprioriColor, aprioriColor, Size(3,3));
+	//medianBlur(*outputImage, *outputImage, 3);
+	//medianBlur(aprioriColor, aprioriColor, 3);
 	*outputImage = *outputImage/aprioriColor;
 	minMaxLoc(*outputImage, &histMin, &histMax, NULL, NULL);
 
@@ -458,7 +489,7 @@ void GMMColorHistBackProject::histFromImage(const Mat image){
 	preprocess(image, &cvtImage);
 	
 	const float* ranges[] = {c1range, c2range};
-	calcHist(&cvtImage, 1, channels, Mat(), histogram, 2, histSize, ranges, true, false);
+	calcHist(&cvtImage, 1, channels, histogramMask, histogram, 2, histSize, ranges, true, false);
 	
 	histogram.convertTo(histogram, CV_64F);
 	gmm->fromHistogram(histogram, histSize, c1range, c2range);
@@ -495,7 +526,11 @@ void SimpleThresholder::process(const Mat inputImage, Mat* outputImage){
     //threshold(*outputImage, *outputImage, thresholdValue, 1.0, THRESH_BINARY);
     
     inputImage.convertTo(*outputImage, CV_8U,255,0);
-    adaptiveThreshold(*outputImage, *outputImage, 255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY, 15, 0.0);
+    
+    threshold(*outputImage, *outputImage, 255, 255, THRESH_BINARY+THRESH_OTSU);
+    //adaptiveThreshold(*outputImage, *outputImage, 255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY, 15, 0.0);
+    
+    
     outputImage->convertTo(*outputImage, CV_32F, 1/255.0,0.0);
     
     /*Mat element = getStructuringElement(MORPH_RECT, Size(5,5));

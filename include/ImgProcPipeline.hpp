@@ -43,6 +43,7 @@ class ColorHistBackProject : public ProcessingElement{
     protected:
 	Mat histogram;
 	Mat normalizedHistogram;
+	Mat histogramMask;
 	int colorspaceCode;
 	int histSize[2];
 	int channels[2];
