@@ -58,10 +58,10 @@ void Histogram::backPropagate(Mat inputImage, Mat* outputImage){
     outputImage->convertTo(*outputImage, CV_32FC1);
 }
 
-void Histogram::makeGMM(int dims, int K){
+void Histogram::makeGMM(int dims, int K, int maxIter = 10, double minStepIncrease = 0.01){
     gmm = GaussianMixtureModel(dims,K);
     normalized.convertTo(normalized, CV_64F);
-    gmm.fromHistogram(normalized, histSize, c1range, c2range);
+    gmm.fromHistogram(normalized, histSize, c1range, c2range, maxIter, minStepIncrease);
     gmmReady = true;
     
     Mat hist = gmm.lookup;
@@ -69,6 +69,11 @@ void Histogram::makeGMM(int dims, int K){
     double histMin = 0;
     minMaxLoc(hist, &histMin, &histMax, NULL, NULL);
     hist.convertTo(normalized,CV_32F,1/(histMax-histMin),-histMin/(histMax-histMin));
+}
+
+void Histogram::resize(int histogramSize[2]){
+    histSize[0] = histogramSize[0];
+    histSize[1] = histogramSize[1];
 }
 
 
@@ -294,7 +299,7 @@ void GaussianMixtureModel::makeLookup(int histSize[2], float c1range[2], float c
     lookup.convertTo(lookup,CV_64F,1/(histMax-histMin),-histMin/(histMax-histMin));
 }
 
-void GaussianMixtureModel::fromHistogram(const Mat histogram, int histSize[2], float c1range[2], float c2range[2]){
+void GaussianMixtureModel::fromHistogram(const Mat histogram, int histSize[2], float c1range[2], float c2range[2], int maxIter=10, double minStepIncrease = 0.01){
     float dim1step = (c1range[1]-c1range[0])/(1.0*histSize[0]);
     float dim2step = (c2range[1]-c2range[0])/(1.0*histSize[1]);
     float dim1start = c1range[0]+dim1step/2.0;
@@ -309,7 +314,7 @@ void GaussianMixtureModel::fromHistogram(const Mat histogram, int histSize[2], f
 	    }
 	}
     }
-    runExpectationMaximization(samples, 30, 0.01);
+    runExpectationMaximization(samples, maxIter, minStepIncrease);
     makeLookup(histSize,c1range,c2range);
 }
 
@@ -464,7 +469,7 @@ void ColorHistBackProject::preprocess(const Mat image, Mat* outputImage){
 	      highRange = Scalar(255,255,255);  break;
 	  case CV_BGR2HLS:
 	      lowRange = Scalar(0,40,10); 
-	      highRange = Scalar(255,150,255); break;
+	      highRange = Scalar(255,220,255); break;
 	  case CV_BGR2YUV:
 	      lowRange = Scalar(25,0,0); 
 	      highRange = Scalar(230,255,255);  break;
@@ -514,7 +519,7 @@ void BayesColorHistBackProject::process(const Mat inputImage, Mat* outputImage){
 	preprocess(inputImage, &cvtImage);
 	
 	objHistogram.backPropagate(cvtImage, outputImage);
-	
+	/*
 	Histogram imgHist = Histogram(objHistogram);
 	imgHist.fromImage(cvtImage);
 	
@@ -522,12 +527,14 @@ void BayesColorHistBackProject::process(const Mat inputImage, Mat* outputImage){
 	imgHist.backPropagate(cvtImage, &aprioriColor);
 	
 	*outputImage = *outputImage/aprioriColor;
+	
 	double histMax = 0;
 	double histMin = 0;
 	minMaxLoc(*outputImage, &histMin, &histMax, NULL, NULL);
-
-	outputImage->convertTo(*outputImage,CV_32F,1/(histMax-histMin),-histMin/(histMax-histMin));
 	
+	outputImage->convertTo(*outputImage,CV_32F,1/(histMax-histMin),-histMin/(histMax-histMin));
+	*/
+	outputImage->convertTo(*outputImage, CV_32F);
 	//aprioriColor.copyTo(*outputImage);
 	
 	return;
@@ -538,6 +545,7 @@ void BayesColorHistBackProject::histFromImage(const Mat image){
 	preprocess(image, &cvtImage);
 	
 	objHistogram.fromImage(cvtImage);
+	objHistogram.makeGMM(2,4);
 	
 	initialized=true;
 }
@@ -546,21 +554,20 @@ void BayesColorHistBackProject::histFromImage(const Mat image){
 
 
 GMMColorHistBackProject::GMMColorHistBackProject(int code, const int* histogramSize) : ColorHistBackProject(code, histogramSize){
-    gmm = new GaussianMixtureModel(2,4);
 }
 
 GMMColorHistBackProject::GMMColorHistBackProject(int code, const int* histogramSize, String filename) : ColorHistBackProject(code, histogramSize,filename) {
-    gmm = new GaussianMixtureModel(2,4);
 }
 
 void GMMColorHistBackProject::process(const Mat inputImage, Mat* outputImage){
 	Mat cvtImage;
 	preprocess(inputImage, &cvtImage);
 	
-	
 	objHistogram.backPropagate(cvtImage, outputImage);
 	
 	Histogram imgHist = Histogram(objHistogram);
+	int size[2] = {16,16};
+	imgHist.resize(size);
 	imgHist.fromImage(cvtImage);
 	
 	medianBlur(*outputImage, *outputImage, 5);
@@ -661,6 +668,7 @@ void SimpleBlobDetect::process(const Mat inputImage, Mat* outputImage){
     }
     temp.copyTo(*outputImage);
 }
+
 
 
 

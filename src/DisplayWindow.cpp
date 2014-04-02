@@ -60,7 +60,7 @@ void DisplayWindow::display(const Mat image){
 	      highRange = Scalar(255,255,255);  break;
 	  case CV_BGR2HLS:
 	      lowRange = Scalar(0,40,10); //Scalar(0, 40, 10); 
-	      highRange = Scalar(255,150,255); break;//Scalar(255,200,255);  break;
+	      highRange = Scalar(255,220,255); break;//Scalar(255,200,255);  break;
 	  case CV_BGR2YUV:
 	      lowRange = Scalar(25,0,0); 
 	      highRange = Scalar(230,255,255);  break;

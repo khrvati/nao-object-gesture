@@ -23,7 +23,7 @@ class GaussianMixtureModel{
 	GaussianMixtureModel(int dims, int K);
 	double get(const Mat x);
 	void makeLookup(int histSize[2], float c1range[2], float c2range[2]);
-	void fromHistogram(const Mat histogram, int histSize[2], float c1range[2], float c2range[2]); 
+	void fromHistogram(const Mat histogram, int histSize[2], float c1range[2], float c2range[2], int maxIter, double minStepIncrease); 
   
 };
 
@@ -44,7 +44,8 @@ class Histogram{
 	void fromImage(Mat image, const Mat mask);
 	void update(Mat image, const Mat mask);
 	void backPropagate(Mat inputImage, Mat* outputImage);
-	void makeGMM(int dims, int K);
+	void makeGMM(int dims, int K, int maxIter, double minStepIncrease);
+	void resize(int histogramSize[2]);
 };
 
 
@@ -97,7 +98,6 @@ class BayesColorHistBackProject : public ColorHistBackProject{
 };
 
 class GMMColorHistBackProject : public ColorHistBackProject{
-    GaussianMixtureModel* gmm;
     public:
 	void histFromImage(const Mat image);
 	void process(const Mat inputImage, Mat* outputImage);
