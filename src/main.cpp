@@ -31,9 +31,14 @@ int main(void)
     int colorCode = CV_BGR2HLS;
     vector<ProcessingElement*> pipeline;
     
+    vector<double> num = {0.87};
+    vector<double> den = {1, -0.13};
+    LTIFilter ltifilt(num, den, 1/30.0);
+    ProcessingElement *generalPtr = static_cast<ProcessingElement*>(&ltifilt);
+    pipeline.push_back(generalPtr);
     
     ColorHistBackProject seg(colorCode, hSize);
-    ProcessingElement *generalPtr = static_cast<ProcessingElement*>(&seg);
+    generalPtr = static_cast<ProcessingElement*>(&seg);
     pipeline.push_back(generalPtr);
     
     BayesColorHistBackProject bayesSeg(colorCode, hSize);
@@ -54,11 +59,11 @@ int main(void)
     pipeline.push_back(generalPtr);
     
     vector<vector<int>> pipelineIdVector;
-    vector<int> temp = {0,3};
+    vector<int> temp = {0,1};
     pipelineIdVector.push_back(temp);
-    temp = {1,3};
+    temp = {0,2};
     pipelineIdVector.push_back(temp);
-    temp = {2,3};
+    temp = {0,3};
     pipelineIdVector.push_back(temp);
     
     String windowname="Color Histogram Backpropagation";

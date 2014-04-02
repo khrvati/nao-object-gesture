@@ -6,6 +6,76 @@
 
 using namespace cv;
 
+Histogram::Histogram(){};
+
+Histogram::Histogram(int inchannels[2], int histogramSize[2], float channel1range[2], float channel2range[2]){
+    channels[0] = inchannels[0];
+    channels[1] = inchannels[1];
+    histSize[0] = histogramSize[0];
+    histSize[1] = histogramSize[1];
+    c1range[0] = channel1range[0];
+    c1range[1] = channel1range[1];
+    c2range[0] = channel2range[0];
+    c2range[1] = channel2range[1];
+    gmmReady = false;
+}
+
+Histogram::Histogram(const Histogram& other){
+    channels[0] = other.channels[0];
+    channels[1] = other.channels[1];
+    histSize[0] = other.histSize[0];
+    histSize[1] = other.histSize[1];
+    c1range[0] = other.c1range[0];
+    c1range[1] = other.c1range[1];
+    c2range[0] = other.c2range[0];
+    c2range[1] = other.c2range[1];
+    gmmReady = false;
+}
+
+void Histogram::fromImage(Mat image, const Mat mask = Mat()){
+    const float* ranges[] = {c1range, c2range};
+    calcHist(&image, 1, channels, mask, accumulator, 2, histSize, ranges, true, false);
+	
+    double histMax = 0;
+    double histMin = 0;
+    minMaxLoc(accumulator, &histMin, &histMax, NULL, NULL);
+    accumulator.convertTo(normalized,CV_32F,1/(histMax-histMin),-histMin/(histMax-histMin));
+}
+
+void Histogram::update(Mat image, const Mat mask = Mat()){
+    const float* ranges[] = {c1range, c2range};
+    calcHist(&image, 1, channels, mask, accumulator, 2, histSize, ranges, true, true);
+	
+    double histMax = 0;
+    double histMin = 0;
+    minMaxLoc(accumulator, &histMin, &histMax, NULL, NULL);
+    accumulator.convertTo(normalized,CV_32F,1/(histMax-histMin),-histMin/(histMax-histMin));
+}
+
+void Histogram::backPropagate(Mat inputImage, Mat* outputImage){
+    const float* ranges[] = {c1range, c2range};
+    calcBackProject(&inputImage, 1, channels, normalized, *outputImage, ranges, 1, true);
+    outputImage->convertTo(*outputImage, CV_32FC1);
+}
+
+void Histogram::makeGMM(int dims, int K){
+    gmm = GaussianMixtureModel(dims,K);
+    normalized.convertTo(normalized, CV_64F);
+    gmm.fromHistogram(normalized, histSize, c1range, c2range);
+    gmmReady = true;
+    
+    Mat hist = gmm.lookup;
+    double histMax = 0;
+    double histMin = 0;
+    minMaxLoc(hist, &histMin, &histMax, NULL, NULL);
+    hist.convertTo(normalized,CV_32F,1/(histMax-histMin),-histMin/(histMax-histMin));
+}
+
+
+GaussianMixtureModel::GaussianMixtureModel(){
+    initialized = false;
+}
+
 GaussianMixtureModel::GaussianMixtureModel(int dims, int K){
     dimensions=dims;
     components=K;
@@ -245,16 +315,86 @@ void GaussianMixtureModel::fromHistogram(const Mat histogram, int histSize[2], f
 
 
 
+/*Input numerator coefficients in standard MATLAB format  */
+LTIFilter::LTIFilter(vector<double> num, vector<double> den, double T){
+    if (num.size()<=den.size()){
+        numerator = num;
+	denominator = den;
+	double norm = den[0];
+	for (int i=0; i<numerator.size(); i++){
+	    numerator[i]/=norm;
+	}
+	for (int i=0; i<denominator.size(); i++){
+	    denominator[i]/=norm;
+	}
+	while (numerator.size()<denominator.size()){
+	    vector<double>::iterator it;
+	    it = numerator.begin();
+	    numerator.insert(it,0.0);
+	}
+	discretizationTime = T;
+	initialized = true;
+    }
+    else{
+	initialized = false;
+    }
+}
+
+void LTIFilter::process(const Mat inputImage, Mat* outputImage){
+    if (in.size()<(denominator.size()-1) || out.size()<(denominator.size()-1)){
+	Mat temp;
+	inputImage.copyTo(temp);
+	temp.convertTo(temp, CV_64FC3);
+	in.push_back(temp);
+	out.push_back(temp);
+	inputImage.copyTo(*outputImage);
+    }
+    else{
+	Mat temp = Mat::zeros(inputImage.size(), CV_64FC3);
+	Mat input;
+	inputImage.convertTo(input, CV_64FC3);
+	vector<Mat>::iterator it;
+	in.push_back(input);
+	for(int i=numerator.size()-1; i>=0; i--){
+	   temp+=in[numerator.size()-i-1]*numerator[i];
+	}
+	for(int i=denominator.size()-1; i>0; i--){
+	   temp-=out[denominator.size()-i-1]*denominator[i];
+	}
+	it = in.begin();
+	in.erase(it);
+	it = out.begin();
+	out.erase(it);
+	out.push_back(temp);
+	temp.convertTo(*outputImage, CV_8UC3);
+    }
+}
+
+
+
+
 ColorHistBackProject::ColorHistBackProject(){
+    int histSize[2];
+    int channels[2];
+    float c1range[2];
+    float c2range[2];
     histSize[0] = 64;
     histSize[1] = 64;
     colorspaceCode = CV_BGR2HSV;
     c1range[0]=0; c1range[1]=180; c2range[0]=0; c2range[1]=256;
     channels[0]=0; channels[1]=1;
+    
+    Histogram histTemp = Histogram(channels, histSize, c1range, c2range);
+    objHistogram = histTemp;
+    
     initialized=false;
 }
   
 ColorHistBackProject::ColorHistBackProject(int code, const int* histogramSize){
+	int histSize[2];
+	int channels[2];
+	float c1range[2];
+	float c2range[2];
 	histSize[0] = histogramSize[0];
 	histSize[1] = histogramSize[1];
 	colorspaceCode=code;
@@ -272,10 +412,17 @@ ColorHistBackProject::ColorHistBackProject(int code, const int* histogramSize){
 	default:
 	   break;
 	}
+	
+	Histogram histTemp = Histogram(channels, histSize, c1range, c2range);
+	objHistogram = histTemp;
 	initialized=false;
 }
 
 ColorHistBackProject::ColorHistBackProject(int code, const int* histogramSize, String filename){
+    int histSize[2];
+    int channels[2];
+    float c1range[2];
+    float c2range[2];
 	histSize[0] = histogramSize[0];
 	histSize[1] = histogramSize[1];
 	colorspaceCode=code;
@@ -291,7 +438,11 @@ ColorHistBackProject::ColorHistBackProject(int code, const int* histogramSize, S
 	default:
 	   break;
 	}
+	
+	Histogram histTemp = Histogram(channels, histSize, c1range, c2range);
+	objHistogram = histTemp;
 	Mat img = imread(filename);
+	
 	histFromImage(img);
 	initialized=true;
 }
@@ -325,6 +476,8 @@ void ColorHistBackProject::preprocess(const Mat image, Mat* outputImage){
 	
       inRange(*outputImage, lowRange, highRange, histogramMask);
       
+      outputImage->convertTo(*outputImage, CV_32F);
+	
       //medianBlur(*outputImage, *outputImage, 5);
       //blur(*outputImage, *outputImage, Size(5,5));
 }
@@ -333,52 +486,26 @@ void ColorHistBackProject::histFromImage(const Mat image){
 	Mat cvtImage;
 	preprocess(image, &cvtImage);
 	
-	const float* ranges[] = {c1range, c2range};
-	calcHist(&cvtImage, 1, channels, histogramMask, histogram, 2, histSize, ranges, true, false);
-	
-	double histMax = 0;
-	double histMin = 0;
-	minMaxLoc(histogram, &histMin, &histMax, NULL, NULL);
-	std::cout << "Range = (" << histMin << ", " << histMax <<  ")" << std::endl;
-	
-	histogram.convertTo(normalizedHistogram,CV_32F,1/(histMax-histMin),-histMin/(histMax-histMin));
+	objHistogram.fromImage(cvtImage, histogramMask);
 	initialized=true;
 };
 
 void ColorHistBackProject::updateHistogram(const Mat image, const Mat mask){
-	float alpha = 0.1; //learning coefficient
-	
 	Mat cvtImage;
 	preprocess(image, &cvtImage);
 	
-	const float* ranges[] = {c1range, c2range};
-	calcHist(&cvtImage, 1, channels, mask, histogram, 2, histSize, ranges, true, false);
-
+	Mat andMask;
+	bitwise_and(histogramMask,mask, andMask);
+	objHistogram.update(image, andMask);
 	
-	double histMax = 0;
-	double histMin = 0;
-	minMaxLoc(histogram, &histMin, &histMax, NULL, NULL);
-	
-	Mat newNormalizedHistogram;
-	histogram.convertTo(newNormalizedHistogram,CV_32F,1/(histMax-histMin),-histMin/(histMax-histMin));
-	
-	if (initialized){
-	normalizedHistogram = normalizedHistogram * (1-alpha) 
-							+ newNormalizedHistogram * alpha;
-	} 
-	else {
-		normalizedHistogram = newNormalizedHistogram;
-		}
 }
 
 void ColorHistBackProject::process(const Mat inputImage, Mat* outputImage){
 	Mat cvtImage;
 	preprocess(inputImage, &cvtImage);
-	
-	const float* ranges[] = {c1range, c2range};
-	calcBackProject(&cvtImage, 1, channels, normalizedHistogram, *outputImage, ranges, 255, true);
-	outputImage->convertTo(*outputImage, CV_32FC1, 1.0/255.0);	
+	objHistogram.backPropagate(cvtImage, outputImage);
 }
+
 
 
 
@@ -386,26 +513,17 @@ void BayesColorHistBackProject::process(const Mat inputImage, Mat* outputImage){
 	Mat cvtImage;
 	preprocess(inputImage, &cvtImage);
 	
-	const float* ranges[] = {c1range, c2range};
-	calcBackProject(&cvtImage, 1, channels, normalizedHistogram, *outputImage, ranges, 255, true);
+	objHistogram.backPropagate(cvtImage, outputImage);
 	
-	Mat imgHist;
-	calcHist(&cvtImage, 1, channels, Mat(), imgHist, 2, histSize, ranges, true, false);
-	double histMax = 0;
-	double histMin = 0;
-	minMaxLoc(imgHist, &histMin, &histMax, NULL, NULL);
-	imgHist.convertTo(imgHist,CV_32F,1/(histMax-histMin),-histMin/(histMax-histMin));
-	imgHist *= 1.0/norm(sum(imgHist));
-	float temp = norm(sum(imgHist));
+	Histogram imgHist = Histogram(objHistogram);
+	imgHist.fromImage(cvtImage);
+	
 	Mat aprioriColor;
-	calcBackProject(&cvtImage, 1, channels, imgHist, aprioriColor, ranges, 255, true);
-	
-	outputImage->convertTo(*outputImage, CV_32FC1, 1.0/255.0);
-	aprioriColor.convertTo(aprioriColor, CV_32FC1, 1.0/255.0);
-	
-	minMaxLoc(aprioriColor, &histMin, &histMax, NULL, NULL);
+	imgHist.backPropagate(cvtImage, &aprioriColor);
 	
 	*outputImage = *outputImage/aprioriColor;
+	double histMax = 0;
+	double histMin = 0;
 	minMaxLoc(*outputImage, &histMin, &histMax, NULL, NULL);
 
 	outputImage->convertTo(*outputImage,CV_32F,1/(histMax-histMin),-histMin/(histMax-histMin));
@@ -419,19 +537,12 @@ void BayesColorHistBackProject::histFromImage(const Mat image){
 	Mat cvtImage;
 	preprocess(image, &cvtImage);
 	
-	const float* ranges[] = {c1range, c2range};
-	calcHist(&cvtImage, 1, channels, histogramMask, histogram, 2, histSize, ranges, true, false);
-
-	double histMax = 0;
-	double histMin = 0;
-	minMaxLoc(histogram, &histMin, &histMax, NULL, NULL);
-	std::cout << "Range = (" << histMin << ", " << histMax <<  ")" << std::endl;
-	
-	histogram.convertTo(normalizedHistogram,CV_32F,1/(histMax-histMin),-histMin/(histMax-histMin));
-	normalizedHistogram *= 1.0/norm(sum(normalizedHistogram));
+	objHistogram.fromImage(cvtImage);
 	
 	initialized=true;
 }
+
+
 
 
 GMMColorHistBackProject::GMMColorHistBackProject(int code, const int* histogramSize) : ColorHistBackProject(code, histogramSize){
@@ -446,36 +557,20 @@ void GMMColorHistBackProject::process(const Mat inputImage, Mat* outputImage){
 	Mat cvtImage;
 	preprocess(inputImage, &cvtImage);
 	
-	const float* ranges[] = {c1range, c2range};
 	
-	cvtImage.convertTo(cvtImage, CV_32F);
-	Mat temp;
-	gmm->lookup.convertTo(temp, CV_32F);
-	calcBackProject(&cvtImage, 1, channels, temp, *outputImage, ranges, 1.0, true);
+	objHistogram.backPropagate(cvtImage, outputImage);
 	
-	Mat imgHist;
-	calcHist(&cvtImage, 1, channels, Mat(), imgHist, 2, histSize, ranges, true, false);
+	Histogram imgHist = Histogram(objHistogram);
+	imgHist.fromImage(cvtImage);
+	
+	medianBlur(*outputImage, *outputImage, 5);
+	Mat aprioriColor;
+	imgHist.backPropagate(cvtImage, &aprioriColor);
+	medianBlur(aprioriColor, aprioriColor, 5);
+	*outputImage = *outputImage/aprioriColor;
 	double histMax = 0;
 	double histMin = 0;
-	minMaxLoc(imgHist, &histMin, &histMax, NULL, NULL);
-	imgHist.convertTo(imgHist,CV_32F,1/(histMax-histMin),-histMin/(histMax-histMin));
-	imgHist *= 1.0/norm(sum(imgHist));
-	Mat aprioriColor;
-	calcBackProject(&cvtImage, 1, channels, imgHist, aprioriColor, ranges, 255.0, true);
-	
-	outputImage->convertTo(*outputImage, CV_32FC1, 1.0/255.0);
-	aprioriColor.convertTo(aprioriColor, CV_32FC1, 1.0/255.0);
-	
-	minMaxLoc(aprioriColor, &histMin, &histMax, NULL, NULL);
-	//aprioriColor.convertTo(aprioriColor,CV_32F,1/(histMax-histMin),-histMin/(histMax-histMin));
-	
-	blur(*outputImage, *outputImage, Size(3,3));
-	blur(aprioriColor, aprioriColor, Size(3,3));
-	//medianBlur(*outputImage, *outputImage, 3);
-	//medianBlur(aprioriColor, aprioriColor, 3);
-	*outputImage = *outputImage/aprioriColor;
 	minMaxLoc(*outputImage, &histMin, &histMax, NULL, NULL);
-
 	outputImage->convertTo(*outputImage,CV_32F,1/(histMax-histMin),-histMin/(histMax-histMin));
 	
 	
@@ -488,26 +583,10 @@ void GMMColorHistBackProject::histFromImage(const Mat image){
 	Mat cvtImage;
 	preprocess(image, &cvtImage);
 	
-	const float* ranges[] = {c1range, c2range};
-	calcHist(&cvtImage, 1, channels, histogramMask, histogram, 2, histSize, ranges, true, false);
+	objHistogram.fromImage(cvtImage);
+	objHistogram.makeGMM(2,4);
 	
-	histogram.convertTo(histogram, CV_64F);
-	gmm->fromHistogram(histogram, histSize, c1range, c2range);
-	
-	double histMax = 0;
-	double histMin = 0;
-	minMaxLoc(histogram, &histMin, &histMax, NULL, NULL);
-	histogram.convertTo(normalizedHistogram,CV_32F,1/(histMax-histMin),-histMin/(histMax-histMin));
-	
-	Mat temp;
-	resize(normalizedHistogram, temp, Size(300,300),0,0,INTER_NEAREST);
-	imshow("Before", temp);
-    
-	
-	resize(gmm->lookup, temp, Size(300,300),0,0,INTER_NEAREST);
-	imshow("After", temp);
-	
-	initialized=true;
+	initialized = true;
 }
 
 

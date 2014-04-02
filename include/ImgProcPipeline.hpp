@@ -6,7 +6,6 @@
 
 using namespace cv;
 
-
 class GaussianMixtureModel{
     int dimensions;
     int components;
@@ -20,12 +19,34 @@ class GaussianMixtureModel{
     public:
 	Mat lookup;
 	bool initialized;
+	GaussianMixtureModel();
 	GaussianMixtureModel(int dims, int K);
 	double get(const Mat x);
 	void makeLookup(int histSize[2], float c1range[2], float c2range[2]);
 	void fromHistogram(const Mat histogram, int histSize[2], float c1range[2], float c2range[2]); 
   
 };
+
+
+class Histogram{
+    Mat accumulator;
+    int histSize[2];
+    int channels[2];
+    float c1range[2];
+    float c2range[2];
+    GaussianMixtureModel gmm;
+    bool gmmReady;
+    public:
+	Mat normalized;
+	Histogram();
+	Histogram(int channels[2], int histogramSize[2], float channel1range[2], float channel2range[2]);
+	Histogram(const Histogram& other);
+	void fromImage(Mat image, const Mat mask);
+	void update(Mat image, const Mat mask);
+	void backPropagate(Mat inputImage, Mat* outputImage);
+	void makeGMM(int dims, int K);
+};
+
 
 /**
  * An abstract base class for all image processing pipeline components.
@@ -36,19 +57,26 @@ class ProcessingElement{
 	virtual void process(const Mat inputImage, Mat* outputImage) = 0;
 };
 
+class LTIFilter : public ProcessingElement{
+    protected:
+	vector<Mat> out;
+	vector<Mat> in;
+	vector<double> numerator;
+	vector<double> denominator;
+	double discretizationTime;
+    public:
+	LTIFilter(vector<double> num, vector<double> den, double T);
+	void process(const Mat inputImage, Mat* outputImage);
+};
+
 /**
  * 2D histogram-based image flattening class. Supports HSV, HLS and YUV colorspaces.
  */
 class ColorHistBackProject : public ProcessingElement{
     protected:
-	Mat histogram;
-	Mat normalizedHistogram;
 	Mat histogramMask;
 	int colorspaceCode;
-	int histSize[2];
-	int channels[2];
-	float c1range[2];
-	float c2range[2];
+	Histogram objHistogram;
 	void preprocess(const Mat image, Mat* outputImage);
     public:
 	//bool initialized;

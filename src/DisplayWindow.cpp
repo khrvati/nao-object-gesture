@@ -143,11 +143,11 @@ void DisplayWindow:: onDragStop(){
       int height=abs(dragStartL.y-currentPos.y);
       Rect imageROI = Rect(x,y,width,height);
       Mat subimage(lastDispImg, imageROI);
-      ColorHistBackProject *temp = static_cast<ColorHistBackProject*>(processingElements[0]);
-      temp->histFromImage(subimage);
-      temp = static_cast<ColorHistBackProject*>(processingElements[1]);
+      ColorHistBackProject *temp = static_cast<ColorHistBackProject*>(processingElements[1]);
       temp->histFromImage(subimage);
       temp = static_cast<ColorHistBackProject*>(processingElements[2]);
+      temp->histFromImage(subimage);
+      temp = static_cast<ColorHistBackProject*>(processingElements[3]);
       temp->histFromImage(subimage);
       }
       catch(Exception e)
