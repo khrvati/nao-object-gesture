@@ -29,6 +29,8 @@ Histogram::Histogram(const Histogram& other){
     c1range[1] = other.c1range[1];
     c2range[0] = other.c2range[0];
     c2range[1] = other.c2range[1];
+    other.accumulator.copyTo(accumulator);
+    other.normalized.copyTo(normalized);
     gmmReady = false;
 }
 
@@ -58,8 +60,8 @@ void Histogram::backPropagate(Mat inputImage, Mat* outputImage){
     outputImage->convertTo(*outputImage, CV_32FC1);
 }
 
-void Histogram::makeGMM(int dims, int K, int maxIter = 10, double minStepIncrease = 0.01){
-    gmm = GaussianMixtureModel(dims,K);
+void Histogram::makeGMM(int K, int maxIter = 10, double minStepIncrease = 0.01){
+    gmm = GaussianMixtureModel(2,K);
     normalized.convertTo(normalized, CV_64F);
     gmm.fromHistogram(normalized, histSize, c1range, c2range, maxIter, minStepIncrease);
     gmmReady = true;
@@ -396,10 +398,10 @@ ColorHistBackProject::ColorHistBackProject(){
 }
   
 ColorHistBackProject::ColorHistBackProject(int code, const int* histogramSize){
-	int histSize[2];
 	int channels[2];
 	float c1range[2];
 	float c2range[2];
+	int histSize[2];
 	histSize[0] = histogramSize[0];
 	histSize[1] = histogramSize[1];
 	colorspaceCode=code;
@@ -418,7 +420,7 @@ ColorHistBackProject::ColorHistBackProject(int code, const int* histogramSize){
 	   break;
 	}
 	
-	Histogram histTemp = Histogram(channels, histSize, c1range, c2range);
+	Histogram histTemp(channels, histSize, c1range, c2range);
 	objHistogram = histTemp;
 	initialized=false;
 }
@@ -456,7 +458,7 @@ void ColorHistBackProject::preprocess(const Mat image, Mat* outputImage){
       //GaussianBlur(image, *outputImage, Size(15,15),0);
       //medianBlur(image, *outputImage, 7);
       
-      bilateralFilter(image, *outputImage, 5, 60, 60);
+      bilateralFilter(image, *outputImage, 5, 75, 60);
       cvtColor(*outputImage, *outputImage, colorspaceCode);
       
       Mat temp;
@@ -479,7 +481,7 @@ void ColorHistBackProject::preprocess(const Mat image, Mat* outputImage){
 	   break;
 	}
 	
-      inRange(*outputImage, lowRange, highRange, histogramMask);
+      //inRange(*outputImage, lowRange, highRange, histogramMask);
       
       outputImage->convertTo(*outputImage, CV_32F);
 	
@@ -551,7 +553,7 @@ void BayesColorHistBackProject::histFromImage(const Mat image){
 }
 
 
-
+GMMColorHistBackProject::GMMColorHistBackProject() : ColorHistBackProject(){};
 
 GMMColorHistBackProject::GMMColorHistBackProject(int code, const int* histogramSize) : ColorHistBackProject(code, histogramSize){
 }
@@ -566,7 +568,7 @@ void GMMColorHistBackProject::process(const Mat inputImage, Mat* outputImage){
 	objHistogram.backPropagate(cvtImage, outputImage);
 	
 	Histogram imgHist = Histogram(objHistogram);
-	int size[2] = {16,16};
+	int size[2] = {32,32};
 	imgHist.resize(size);
 	imgHist.fromImage(cvtImage);
 	

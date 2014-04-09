@@ -7,8 +7,11 @@
 
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
+#include "boost/filesystem.hpp"
+#include "boost/filesystem/fstream.hpp"
 #include "ImgProcPipeline.hpp"
 #include "DisplayWindow.hpp"
+#include "ObjectTracking.hpp"
 
 #include <iostream>
 #include <stdio.h>
@@ -50,6 +53,7 @@ int main(void)
     generalPtr = static_cast<ProcessingElement*>(&GMMSeg);
     pipeline.push_back(generalPtr);
     
+    //4
     SimpleThresholder thresh(0.2);
     generalPtr = static_cast<ProcessingElement*>(&thresh);
     pipeline.push_back(generalPtr);
@@ -58,12 +62,16 @@ int main(void)
     generalPtr = static_cast<ProcessingElement*>(&sbd);
     pipeline.push_back(generalPtr);
     
+    ObjectTracker objtrack;
+    generalPtr = static_cast<ProcessingElement*>(&objtrack);
+    pipeline.push_back(generalPtr);
+    
     vector<vector<int>> pipelineIdVector;
-    vector<int> temp = {0,1};
+    vector<int> temp = {6};
     pipelineIdVector.push_back(temp);
-    temp = {0,2};
+    temp = {0,2,4,5};
     pipelineIdVector.push_back(temp);
-    temp = {0,3};
+    temp = {0,3,4,5};
     pipelineIdVector.push_back(temp);
     
     String windowname="Color Histogram Backpropagation";

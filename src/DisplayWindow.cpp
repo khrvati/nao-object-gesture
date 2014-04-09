@@ -1,6 +1,9 @@
 #include "opencv2/highgui/highgui.hpp"
+#include "boost/filesystem.hpp"
+#include "boost/filesystem/fstream.hpp"
 #include "DisplayWindow.hpp"
 #include "ImgProcPipeline.hpp"
+#include "ObjectTracking.hpp"
 #include <chrono>
 
 DisplayWindow::DisplayWindow(String name){
@@ -149,6 +152,8 @@ void DisplayWindow:: onDragStop(){
       temp->histFromImage(subimage);
       temp = static_cast<ColorHistBackProject*>(processingElements[3]);
       temp->histFromImage(subimage);
+      ObjectTracker* temp2 = static_cast<ObjectTracker*>(processingElements[6]);
+      temp2->addObjectKind(subimage);
       }
       catch(Exception e)
       {

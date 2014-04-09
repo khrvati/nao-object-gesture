@@ -44,7 +44,7 @@ class Histogram{
 	void fromImage(Mat image, const Mat mask);
 	void update(Mat image, const Mat mask);
 	void backPropagate(Mat inputImage, Mat* outputImage);
-	void makeGMM(int dims, int K, int maxIter, double minStepIncrease);
+	void makeGMM(int K, int maxIter, double minStepIncrease);
 	void resize(int histogramSize[2]);
 };
 
@@ -101,6 +101,7 @@ class GMMColorHistBackProject : public ColorHistBackProject{
     public:
 	void histFromImage(const Mat image);
 	void process(const Mat inputImage, Mat* outputImage);
+	GMMColorHistBackProject();
 	GMMColorHistBackProject(int code, const int* histogramSize);
 	GMMColorHistBackProject(int code, const int* histogramSize, String filename);
   
