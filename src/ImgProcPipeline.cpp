@@ -31,7 +31,26 @@ Histogram::Histogram(const Histogram& other){
     c2range[1] = other.c2range[1];
     other.accumulator.copyTo(accumulator);
     other.normalized.copyTo(normalized);
-    gmmReady = false;
+    gmmReady = other.gmmReady;
+    gmm = other.gmm;
+}
+
+Histogram& Histogram::operator=(const Histogram& other){
+    if (this != &other){
+	channels[0] = other.channels[0];
+	channels[1] = other.channels[1];
+	histSize[0] = other.histSize[0];
+	histSize[1] = other.histSize[1];
+	c1range[0] = other.c1range[0];
+	c1range[1] = other.c1range[1];
+	c2range[0] = other.c2range[0];
+	c2range[1] = other.c2range[1];
+	other.accumulator.copyTo(accumulator);
+	other.normalized.copyTo(normalized);
+	gmmReady = other.gmmReady;
+	gmm = other.gmm;
+    }
+    return *this;
 }
 
 void Histogram::fromImage(Mat image, const Mat mask = Mat()){
@@ -99,6 +118,52 @@ GaussianMixtureModel::GaussianMixtureModel(int dims, int K){
     initialized = false;
 }
 
+GaussianMixtureModel::GaussianMixtureModel(const GaussianMixtureModel& other){
+    dimensions = other.dimensions;
+    components = other.components;
+    weight = other.weight;
+    initialized = other.initialized;
+    covarianceMatrix.clear();
+    for(int i=0; i<other.covarianceMatrix.size(); i++){
+	Mat temp;
+	other.covarianceMatrix[i].copyTo(temp);
+	covarianceMatrix.push_back(temp);
+    }
+    meanVector.clear();
+    for(int i=0; i<other.meanVector.size(); i++){
+	Mat temp;
+	other.meanVector[i].copyTo(temp);
+	meanVector.push_back(temp);
+    }
+    other.componentProbability.copyTo(componentProbability);
+    other.lookup.copyTo(lookup);
+}
+	
+GaussianMixtureModel& GaussianMixtureModel::operator=(const GaussianMixtureModel& other){
+    if(this != &other){
+	dimensions = other.dimensions;
+	components = other.components;
+	weight = other.weight;
+	initialized = other.initialized;
+	covarianceMatrix.clear();
+	for(int i=0; i<other.covarianceMatrix.size(); i++){
+	    Mat temp;
+	    other.covarianceMatrix[i].copyTo(temp);
+	    covarianceMatrix.push_back(temp);
+	}
+	meanVector.clear();
+	for(int i=0; i<other.meanVector.size(); i++){
+	    Mat temp;
+	    other.meanVector[i].copyTo(temp);
+	    meanVector.push_back(temp);
+	}
+	other.componentProbability.copyTo(componentProbability); 
+	other.lookup.copyTo(lookup);
+    }
+    
+    return *this;
+}
+	
 /* matrix samples is a N X (M+1) matrix, consisting of N M-dimensional samples. The last row-element is the number of identical samples*/
 void GaussianMixtureModel::runExpectationMaximization(const Mat samples, int maxIterations, double minStepIncrease){
     if (true){
@@ -323,6 +388,12 @@ void GaussianMixtureModel::fromHistogram(const Mat histogram, int histSize[2], f
 
 
 /*Input numerator coefficients in standard MATLAB format  */
+LTIFilter::LTIFilter(){
+    discretizationTime = 1;
+    numerator = {1};
+    denominator = {1};
+}
+
 LTIFilter::LTIFilter(vector<double> num, vector<double> den, double T){
     if (num.size()<=den.size()){
         numerator = num;
@@ -376,8 +447,6 @@ void LTIFilter::process(const Mat inputImage, Mat* outputImage){
 	temp.convertTo(*outputImage, CV_8UC3);
     }
 }
-
-
 
 
 ColorHistBackProject::ColorHistBackProject(){

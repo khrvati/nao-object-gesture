@@ -5,25 +5,16 @@
 #include "boost/filesystem.hpp"
 #include "boost/filesystem/fstream.hpp"
 #include "ImgProcPipeline.hpp"
+#include <chrono>
 
 using namespace std;
 using namespace cv;
 
-class LogManager{
-    protected:
-	boost::filesystem::path rootDir;
-	int nextId;
-    public:
-	std::vector<boost::filesystem::path> logFilePaths;
-	LogManager();
-	int getId();
-};
-
 class TrackedObject{
     protected:
-	vector<Point> listOfPoints;
 	Size imageSize;
     public:
+	vector<Point> listOfPoints;
 	vector<TrackedObject*> occluding;
 	TrackedObject* occluder;
 	bool occluded;
@@ -40,6 +31,18 @@ class TrackedObject{
 	RotatedRect useCamShift(const Mat probImage);
 	double compare(TrackedObject otherObject);
 	
+};
+
+class LogManager{
+    protected:
+	boost::filesystem::path rootDir;
+	int nextId;
+	chrono::time_point<chrono::system_clock> trackingStarted;
+    public:
+	std::vector<boost::filesystem::path> logFilePaths;
+	LogManager();
+	void store(TrackedObject obj);
+	int getId();
 };
 
 class ObjectTracker : public ProcessingElement{
@@ -64,7 +67,9 @@ class ObjectTracker : public ProcessingElement{
   
 };
 
-double compareBB(RotatedRect bb1, RotatedRect bb2);
+bool intersectingOBB(RotatedRect obb1, RotatedRect obb2);
+
+double distEllipse2Point(RotatedRect ellipse, Point pt);
 
 
 #endif

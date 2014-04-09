@@ -21,6 +21,8 @@ class GaussianMixtureModel{
 	bool initialized;
 	GaussianMixtureModel();
 	GaussianMixtureModel(int dims, int K);
+	GaussianMixtureModel(const GaussianMixtureModel& other);
+	GaussianMixtureModel& operator=(const GaussianMixtureModel& other);
 	double get(const Mat x);
 	void makeLookup(int histSize[2], float c1range[2], float c2range[2]);
 	void fromHistogram(const Mat histogram, int histSize[2], float c1range[2], float c2range[2], int maxIter, double minStepIncrease); 
@@ -41,6 +43,7 @@ class Histogram{
 	Histogram();
 	Histogram(int channels[2], int histogramSize[2], float channel1range[2], float channel2range[2]);
 	Histogram(const Histogram& other);
+	Histogram& operator=(const Histogram& other);
 	void fromImage(Mat image, const Mat mask);
 	void update(Mat image, const Mat mask);
 	void backPropagate(Mat inputImage, Mat* outputImage);
@@ -66,6 +69,7 @@ class LTIFilter : public ProcessingElement{
 	vector<double> denominator;
 	double discretizationTime;
     public:
+	LTIFilter();
 	LTIFilter(vector<double> num, vector<double> den, double T);
 	void process(const Mat inputImage, Mat* outputImage);
 };
