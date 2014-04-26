@@ -315,11 +315,11 @@ void TrackedObject::unOcclude(){
 
 
 
-ObjectTracker::ObjectTracker(): filterLTI({0.5}, {1, -0.5}, 1/30.0){
+ObjectTracker::ObjectTracker(){
     vector<double> num = {0.6};//{0.87};
     vector<double> den = {1, -0.4};//{1, -0.13};
-    filterLTI = LTIFilter(num, den, 1/30.0);
     frameNumber = 0;
+    nextObjectIdx = 0;
 }
 
 void ObjectTracker::preprocess(const Mat image, Mat& outputImage, Mat& mask){
@@ -647,7 +647,10 @@ void ObjectTracker::process(const Mat inputImage, Mat* outputImage){
     for (int i=0; i<newBlobs.size(); i++){
         boost::shared_ptr<TrackedObject> temp(new TrackedObject(procimg, blobs[newBlobs[i]]));
         temp->kind = blobKinds[newBlobs[i]];
-        temp->id = rand()%510;
+        temp->id = nextObjectIdx++;
+        int ctmp = (temp->id*21)%51 *10;
+        Scalar color(ctmp>255?0:255-ctmp, ctmp>255?512-ctmp:ctmp, ctmp>255?ctmp-255:0);
+        temp->color = color;
         objects.push_back(temp);
     }
 
@@ -668,10 +671,13 @@ void ObjectTracker::process(const Mat inputImage, Mat* outputImage){
         vector<vector<Point> > contours;
         if (objects[i]->contour.size()>0){
             contours.push_back(objects[i]->contour);
-            int ctmp = objects[i]->id;
-            Scalar color(ctmp>255?0:255-ctmp, ctmp>255?512-ctmp:ctmp, ctmp>255?ctmp-255:0);
-            drawContours(drawImg, contours, 0, color, 2);
-            ellipse(drawImg, objects[i]->ellipse, color, 1);
+            drawContours(drawImg, contours, 0, objects[i]->color, 2);
+            ellipse(drawImg, objects[i]->ellipse, objects[i]->color, 1);
+            string id = to_string(objects[i]->id);
+            Point shifted = objects[i]->ellipse.center;
+            shifted.x += -4;
+            shifted.y += 4;
+            putText(drawImg, id, shifted, FONT_HERSHEY_SIMPLEX, 0.7, objects[i]->color, 2);
         }
     }
     /*
@@ -721,8 +727,6 @@ void ObjectTracker::process(const Mat inputImage, Mat* outputImage){
         }
         }
     }
-
-    std::cout << objects.size() << std::endl;
 
     drawImg.copyTo(*outputImage);
     

@@ -35,6 +35,7 @@ class TrackedObject{
         boost::system_time timeLost;
         bool tracked;
         bool occluded;
+        Scalar color;
         vector<boost::shared_ptr<TrackedObject> > occluding;
         vector<boost::shared_ptr<TrackedObject> > occluders;
         vector<Point2i> points;
@@ -73,8 +74,8 @@ class LogManager{
 class ObjectTracker : public ProcessingElement{
     protected:
     vector<UpdatableHistogram> objectKinds;
-	LTIFilter filterLTI;
     int frameNumber;
+    int nextObjectIdx;
     public:
     vector<boost::shared_ptr<TrackedObject> > objects;
     vector<RotatedRect> lastFrameBlobs;

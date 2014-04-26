@@ -29,7 +29,7 @@ qi_use_lib(ImageAcquisition OPENCV2_CORE OPENCV2_HIGHGUI ALCOMMON ALVISION ALPRO
 qi_stage_lib(ImageAcquisition)
 
 qi_create_lib(ModuleImpl include/NAOObjectGesture.h src/NAOObjectGesture.cpp)
-qi_use_lib(ModuleImpl ALCOMMON BOOST BOOST_THREAD BOOST_FILESYSTEM ObjectTracking)
+qi_use_lib(ModuleImpl ALCOMMON BOOST BOOST_THREAD BOOST_FILESYSTEM OPENCV2_CORE OPENCV2_HIGHGUI ObjectTracking)
 
 if(TESTMODE)
         qi_create_bin(nao-object-gesture src/main.cpp)
