@@ -55,7 +55,7 @@ void DisplayWindow::display(const Mat image){
 	Scalar lowRange;
 	Scalar highRange;
 	
-	int colorspaceCode = CV_BGR2HLS;
+    int colorspaceCode = CV_BGR2YUV;
 	
 	switch (colorspaceCode){
 	  case CV_BGR2HSV:
@@ -65,8 +65,8 @@ void DisplayWindow::display(const Mat image){
 	      lowRange = Scalar(0,40,10); //Scalar(0, 40, 10); 
 	      highRange = Scalar(255,220,255); break;//Scalar(255,200,255);  break;
 	  case CV_BGR2YUV:
-	      lowRange = Scalar(25,0,0); 
-	      highRange = Scalar(230,255,255);  break;
+          lowRange = Scalar(40,0,0);
+          highRange = Scalar(215,255,255);  break;
 	  case CV_BGR2Lab:
 	      lowRange = Scalar(25,0,0); highRange = Scalar(230,255,255);  break;
 	default:
@@ -153,11 +153,17 @@ void DisplayWindow:: onDragStop(){
       temp = static_cast<ColorHistBackProject*>(processingElements[3]);
       temp->histFromImage(subimage);
       ObjectTracker* temp2 = static_cast<ObjectTracker*>(processingElements[6]);
-      temp2->addObjectKind(subimage);
+      Mat mask(Mat::zeros(lastDispImg.size(), CV_8U));
+      rectangle(mask, imageROI, Scalar(255), -1);
+      vector<Mat> imvec;
+      vector<Mat> maskvec;
+      imvec.push_back(lastDispImg);
+      maskvec.push_back(mask);
+      temp2->addObjectKind(imvec, maskvec);
       }
       catch(Exception e)
       {
-	std::cout << e.msg << std::endl;
+    std::cout << e.msg << std::endl;
       }
   }
 }

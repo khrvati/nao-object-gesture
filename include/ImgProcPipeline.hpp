@@ -2,6 +2,7 @@
 #define IMGPROCPIPELINE
 
 #include "opencv2/imgproc/imgproc.hpp"
+#include "opencv2/video/video.hpp"
 #include <iostream>
 
 using namespace cv;
@@ -31,6 +32,7 @@ class GaussianMixtureModel{
 
 
 class Histogram{
+protected:
     Mat accumulator;
     int histSize[2];
     int channels[2];
@@ -38,17 +40,17 @@ class Histogram{
     float c2range[2];
     GaussianMixtureModel gmm;
     bool gmmReady;
-    public:
-	Mat normalized;
-	Histogram();
-	Histogram(int channels[2], int histogramSize[2], float channel1range[2], float channel2range[2]);
-	Histogram(const Histogram& other);
-	Histogram& operator=(const Histogram& other);
-	void fromImage(Mat image, const Mat mask);
-	void update(Mat image, const Mat mask);
-	void backPropagate(Mat inputImage, Mat* outputImage);
-	void makeGMM(int K, int maxIter, double minStepIncrease);
-	void resize(int histogramSize[2]);
+public:
+    Mat normalized;
+    Histogram();
+    Histogram(int channels[2], int histogramSize[2], float channel1range[2], float channel2range[2]);
+    Histogram(const Histogram& other);
+    Histogram& operator=(const Histogram& other);
+    virtual void fromImage(Mat image, const Mat mask);
+    virtual void update(Mat image, double alpha, const Mat mask);
+    void backPropagate(Mat inputImage, Mat* outputImage);
+    void makeGMM(int K, int maxIter, double minStepIncrease);
+    void resize(int histogramSize[2]);
 };
 
 
@@ -124,6 +126,25 @@ class SimpleBlobDetect : public ProcessingElement{
 	SimpleBlobDetect();
 	void process(const Mat inputImage, Mat* outputImage);
   
+};
+
+class OpticalFlow : public ProcessingElement{
+    protected:
+        bool init;
+        Mat old;
+    public:
+        OpticalFlow();
+        void process(const Mat inputImage, Mat* outputImage);
+};
+
+class BGSubtractor : public ProcessingElement{
+    protected:
+        bool init;
+        BackgroundSubtractorMOG bgsub;
+        Mat old;
+    public:
+        BGSubtractor();
+        void process(const Mat inputImage, Mat* outputImage);
 };
 
 #endif

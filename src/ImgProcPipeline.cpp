@@ -1,5 +1,6 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/highgui/highgui.hpp"
+#include "opencv2/video/video.hpp"
 #include "ImgProcPipeline.hpp"
 #include <iostream>
 #include <cmath>
@@ -63,10 +64,14 @@ void Histogram::fromImage(Mat image, const Mat mask = Mat()){
     accumulator.convertTo(normalized,CV_32F,1/(histMax-histMin),-histMin/(histMax-histMin));
 }
 
-void Histogram::update(Mat image, const Mat mask = Mat()){
+void Histogram::update(Mat image, double alpha, const Mat mask = Mat()){
     const float* ranges[] = {c1range, c2range};
-    calcHist(&image, 1, channels, mask, accumulator, 2, histSize, ranges, true, true);
+    Mat temp;
+    accumulator *= (1-alpha);
+    calcHist(&image, 1, channels, mask, temp, 2, histSize, ranges, true, true);
 	
+
+
     double histMax = 0;
     double histMin = 0;
     minMaxLoc(accumulator, &histMin, &histMax, NULL, NULL);
@@ -81,7 +86,7 @@ void Histogram::backPropagate(Mat inputImage, Mat* outputImage){
 
 void Histogram::makeGMM(int K, int maxIter = 10, double minStepIncrease = 0.01){
     gmm = GaussianMixtureModel(2,K);
-    normalized.convertTo(normalized, CV_64F);
+    accumulator.convertTo(normalized, CV_64F);
     gmm.fromHistogram(normalized, histSize, c1range, c2range, maxIter, minStepIncrease);
     gmmReady = true;
     
@@ -284,11 +289,7 @@ void GaussianMixtureModel::runExpectationMaximization(const Mat samples, int max
 	for (int k = 0; k<components; k++){
 	    weight[k] = newWeight[k];
 	    newMeanVector[k].copyTo(meanVector[k]);
-	    newCovarianceMatrix[k].copyTo(covarianceMatrix[k]);
-	    std::cout << "Component " << k << std::endl;
-	    std::cout << "Weight: "<< newWeight[k] << std::endl;
-	    std::cout << "Mean: "<< newMeanVector[k] << std::endl;
-	    std::cout << "Covariance: "<< newCovarianceMatrix[k] << std::endl;  
+        newCovarianceMatrix[k].copyTo(covarianceMatrix[k]);
 	}
 	
 	double logLikelihood = 0.0;
@@ -572,7 +573,7 @@ void ColorHistBackProject::updateHistogram(const Mat image, const Mat mask){
 	
 	Mat andMask;
 	bitwise_and(histogramMask,mask, andMask);
-	objHistogram.update(image, andMask);
+    objHistogram.update(image, 0.1, andMask);
 	
 }
 
@@ -637,14 +638,14 @@ void GMMColorHistBackProject::process(const Mat inputImage, Mat* outputImage){
 	objHistogram.backPropagate(cvtImage, outputImage);
 	
 	Histogram imgHist = Histogram(objHistogram);
-	int size[2] = {32,32};
+    int size[2] = {16,16};
 	imgHist.resize(size);
 	imgHist.fromImage(cvtImage);
 	
-	medianBlur(*outputImage, *outputImage, 5);
+    medianBlur(*outputImage, *outputImage, 5);
 	Mat aprioriColor;
 	imgHist.backPropagate(cvtImage, &aprioriColor);
-	medianBlur(aprioriColor, aprioriColor, 5);
+    medianBlur(aprioriColor, aprioriColor, 5);
 	*outputImage = *outputImage/aprioriColor;
 	double histMax = 0;
 	double histMin = 0;
@@ -684,7 +685,7 @@ void SimpleThresholder::process(const Mat inputImage, Mat* outputImage){
     
     inputImage.convertTo(*outputImage, CV_8U,255,0);
     
-    threshold(*outputImage, *outputImage, 255, 255, THRESH_BINARY+THRESH_OTSU);
+    threshold(*outputImage, *outputImage, 100, 255, THRESH_BINARY);
     //adaptiveThreshold(*outputImage, *outputImage, 255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY, 15, 0.0);
     
     
@@ -740,6 +741,41 @@ void SimpleBlobDetect::process(const Mat inputImage, Mat* outputImage){
     temp.copyTo(*outputImage);
 }
 
+OpticalFlow::OpticalFlow(){
+    init = false;
+}
 
+void OpticalFlow::process(const Mat inputImage, Mat *outputImage){
+    Mat imbw;
+    cvtColor(inputImage, imbw, CV_BGR2GRAY);
+    blur(imbw, imbw, Size(7,7));
+    if (!init){
+        init=true;
+        imbw.copyTo(old);
+        imbw.copyTo(*outputImage);
+        return;
+    }
+    Mat of;
+    calcOpticalFlowFarneback(old,imbw, of, 0.5, 3, 15, 3, 7, 1.5,0);
+    Mat dxdy[2];
+    split(of,dxdy);
+    Mat moveMag = abs(dxdy[0])+abs(dxdy[1]);
+    moveMag.convertTo(*outputImage,CV_32F,1.0,0);
+    imbw.copyTo(old);
+}
+
+BGSubtractor::BGSubtractor(){
+    bgsub = BackgroundSubtractorMOG(4,3,0.4);
+    init = false;
+}
+
+void BGSubtractor::process(const Mat inputImage, Mat *outputImage){
+    Mat imbw;
+    inputImage.copyTo(imbw);
+    //cvtColor(inputImage, imbw, CV_BGR2GRAY);
+    inputImage.copyTo(imbw);
+    blur(imbw, imbw, Size(7,7));
+    bgsub(imbw, *outputImage, 0.01);
+}
 
 
