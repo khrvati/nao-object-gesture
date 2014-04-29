@@ -11,6 +11,12 @@
 #include <ctime>
 #include <cstdlib>
 
+#ifdef TESTMODE
+#define VISUALDEBUG true
+#else
+#define VISUALDEBUG false
+#endif
+
 using namespace cv;
 using namespace std;
 
@@ -41,7 +47,7 @@ void UpdatableHistogram::update(Mat image, double alpha, const Mat mask){
     }
     buffer.push_back(aposteriori);
 
-    int full = 0;
+    int full = 1;
     for (int i=0; i<buffer.size()-1; i++){
         double minVal = 0;
         double maxVal = 0;
@@ -55,13 +61,7 @@ void UpdatableHistogram::update(Mat image, double alpha, const Mat mask){
         aposteriori/=full;
     }
 
-    if (full>0){
-        aposteriori = alpha*offline + (1-alpha)*aposteriori;
-        aposteriori.copyTo(normalized);
-    }
-    else {
-        offline.copyTo(normalized);
-    }
+    aposteriori = alpha*offline + (1-alpha)*aposteriori;
 }
 
 void UpdatableHistogram::fromImage(const vector<Mat> image, const vector<Mat> mask){
@@ -85,48 +85,6 @@ void UpdatableHistogram::fromImage(const vector<Mat> image, const vector<Mat> ma
     makeGMM(3,20,0.001);
 }
 
-LogManager::LogManager(){
-    fs::path full_path;
-    do{
-      time_t rawtime;
-      struct tm * timeinfo;
-      char buffer [80];
-      time (&rawtime);
-      timeinfo = localtime (&rawtime);
-      strftime(buffer, 80, "%F_%H-%M-%S", timeinfo);
-      
-      full_path = fs::system_complete(fs::path(buffer));
-    } while (fs::exists(full_path));
-    
-    fs::create_directory(full_path);
-    rootDir = full_path;
-    nextId = 0;
-    trackingStarted = clock();
-}
-
-int LogManager::getId(){
-    boost::filesystem::path filePath;
-    filePath = rootDir;
-    int id = nextId++;
-    string filename = "object_";
-    filename.append(to_string(id));
-    filename.append(".csv");
-    filePath /= filename;
-    logFilePaths.push_back(filePath);
-    return id;
-}
-
-void LogManager::store(TrackedObject obj){
-    if (obj.id >=0 && obj.id < logFilePaths.size()){
-	clock_t tnow = clock();
-	float time = (tnow-trackingStarted)/(float)CLOCKS_PER_SEC;
-	boost::filesystem::ofstream fileStream(logFilePaths[obj.id], ios::out | ios::app);
-	fileStream << time << ", " << obj.ellipse.center.x << ", " << obj.ellipse.center.y << endl;
-    }
-}
-
-
-
 TrackedObject::TrackedObject(){
     tracked = false;
 }
@@ -135,6 +93,7 @@ TrackedObject::TrackedObject(const Mat image, const vector<Point> inContour, boo
     if (inContour.size()<5) {tracked = false; return;}
     tracked = true;
     imageSize = image.size();
+
     if (isContour){
         contour = inContour;
         points.clear();
@@ -142,17 +101,19 @@ TrackedObject::TrackedObject(const Mat image, const vector<Point> inContour, boo
     else {
         contour.clear();
         points = inContour;
-        Mat temp(Mat::zeros(image.size(), CV_8U));
-        for (int i=0; i<points.size(); i++){
-            temp.at<uchar>(points[i])=255;
+        if (VISUALDEBUG){
+            Mat temp(Mat::zeros(image.size(), CV_8U));
+            for (int i=0; i<points.size(); i++){
+                temp.at<uchar>(points[i])=255;
+            }
+            vector<vector<Point> > contours;
+            findContours(temp, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+            contour = contours[0];
         }
-        vector<vector<Point> > contours;
-        findContours(temp, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
-        contour = contours[0];
     }
     ellipse = getEllipse();//minAreaRect(inContour);
     actualEllipse = ellipse;
-    area = ellipse.size.area();
+    updateArea();
     timeLost = boost::get_system_time();
     occluded = false;
     estMove = Point2f(0,0);
@@ -172,22 +133,24 @@ void TrackedObject::update(const Mat image, const vector<Point> inContour, bool 
     else {
         contour.clear();
         points = inContour;
-        Mat temp(Mat::zeros(image.size(), CV_8U));
-        for (int i=0; i<points.size(); i++){
-            temp.at<uchar>(points[i])=255;
-        }
-        vector<vector<Point> > contours;
-        findContours(temp, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE
-                     );
-        int maxsize = contours[0].size();
-        int best = 0;
-        for (int i=1; i<contours.size(); i++){
-            if (contours[i].size()>maxsize){
-                maxsize = contours[i].size();
-                best = i;
+        if (VISUALDEBUG){
+            Mat temp(Mat::zeros(image.size(), CV_8U));
+            for (int i=0; i<points.size(); i++){
+                temp.at<uchar>(points[i])=255;
             }
+            vector<vector<Point> > contours;
+            findContours(temp, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE
+                         );
+            int maxsize = contours[0].size();
+            int best = 0;
+            for (int i=1; i<contours.size(); i++){
+                if (contours[i].size()>maxsize){
+                    maxsize = contours[i].size();
+                    best = i;
+                }
+            }
+            contour = contours[best];
         }
-        contour = contours[best];
     }
     RotatedRect newEllipse = getEllipse(); //minAreaRect(inContour);
     estMove = newEllipse.center-actualEllipse.center;
@@ -315,9 +278,7 @@ void TrackedObject::unOcclude(){
 
 
 
-ObjectTracker::ObjectTracker(){
-    vector<double> num = {0.6};//{0.87};
-    vector<double> den = {1, -0.4};//{1, -0.13};
+ObjectTracker::ObjectTracker(){    
     frameNumber = 0;
     nextObjectIdx = 0;
 }
@@ -325,15 +286,9 @@ ObjectTracker::ObjectTracker(){
 void ObjectTracker::preprocess(const Mat image, Mat& outputImage, Mat& mask){
     Mat procimg;
     blur(image, procimg, Size(5,5));
-    /* HSL
-    cvtColor(procimg, procimg, CV_BGR2HLS);
-    Scalar lowRange = Scalar(0,40,10);
-    Scalar highRange = Scalar(255,220,255);
-    *//* YUV */
     cvtColor(procimg, procimg, CV_BGR2YCrCb);
     Scalar lowRange = Scalar(40,0,0);
     Scalar highRange = Scalar(215,255,255);
-
     inRange(procimg, lowRange, highRange, mask);
     procimg.convertTo(outputImage, CV_32F);
 }
@@ -350,12 +305,6 @@ void ObjectTracker::addObjectKind(const vector<Mat> image, const vector<Mat> out
         procimg.push_back(temp);
         mask.push_back(tempmask);
     }
-
-    /* HSL
-    int channels[2] = {0,1};
-    float c1range[2] = {0,180};
-    float c2range[2] = {0,256};
-    *//* YUV */
     int channels[2] = {1,2};
     float c1range[2] = {0,256};
     float c2range[2] = {0,256};
@@ -367,7 +316,6 @@ void ObjectTracker::addObjectKind(const vector<Mat> image, const vector<Mat> out
     objectKinds.push_back(objHist);
     Mat temp;
     resize(objectKinds.back().normalized, temp, Size(300,300),0,0, INTER_NEAREST);
-    imshow("Expanded histogram", temp);
     //objectKinds.back().makeGMM(3,4,0.01);
 }
 
@@ -379,90 +327,7 @@ void ObjectTracker::getProbImages(const Mat procimg, const Mat mask, vector<Mat>
     for (int i=0; i<objectKinds.size(); i++){
         Mat objProb;
         objectKinds[i].backPropagate(procimg, &objProb);
-        medianBlur(objProb, objProb, 5);
         outputImages.push_back(objProb);
-    }
-}
-
-void ObjectTracker::binarize(const Mat inputImage, Mat &outputImage){
-    Mat binImg;
-    inputImage.convertTo(binImg, CV_8U,255,0);
-    threshold(binImg, binImg, 75, 255, THRESH_BINARY);
-    Mat element = getStructuringElement(MORPH_ELLIPSE, Size(11,11));
-    dilate(binImg, binImg, element);
-    //element = getStructuringElement(MORPH_ELLIPSE, Size(15,15));
-    erode(binImg, binImg, element);
-    binImg.copyTo(outputImage);
-}
-
-void ObjectTracker::blobObjectCorrespond(vector<Mat> probImg, vector<vector<Point2i> > blobs, vector<boost::shared_ptr<TrackedObject> > objVec, vector<vector<int> >& objectsblob, vector<vector<int> >& blobsobject){
-    struct objectAssociation{
-        boost::shared_ptr<TrackedObject> object;
-        Mat sumProb;
-    };
-
-    vector<objectAssociation> oaVector;
-    for (int j=0; j<objVec.size(); j++){
-        objectAssociation temp;
-        temp.object = objVec[j];
-        temp.sumProb = Mat::zeros(Size(1,blobs.size()),CV_32F);
-        oaVector.push_back(temp);
-    }
-
-    //then, compute blob-object association metrics for each blob and each object
-    for (int j=0; j<blobs.size(); j++){
-        for(int k=0; k<blobs[j].size(); k++){
-            Point2i pt = blobs[j][k];
-            for(int ob=0; ob<oaVector.size(); ob++){
-                boost::shared_ptr<TrackedObject> to = oaVector[ob].object;
-                float prob = probImg[to->kind].at<float>(pt);
-                if (distEllipse2Point(to->ellipse,pt)<=1){
-                    oaVector[ob].sumProb.at<float>(1,j)+=prob;
-                }
-            }
-
-        }
-    }
-
-    //then, find the blob best associated with each object (only one blob per object)
-    //also, find the object best associated with each blob (only one object per blob)
-    blobsobject.clear(); //blobsobject [i] means blobs belonging to object [i]
-    objectsblob.clear(); //objectsblob [i] means objects belonging to blob [i]
-    for(int j=0; j<blobs.size(); j++){
-        vector<int> temp;
-        objectsblob.push_back(temp);
-    }
-    for(int j=0; j<objVec.size(); j++){
-        vector<int> temp;
-        blobsobject.push_back(temp);
-    }
-    for (int j=0; j<oaVector.size(); j++){
-        float max=0;
-        int idx=-1;
-        for (int k=0; k<blobs.size(); k++){
-            float association = oaVector[j].sumProb.at<float>(1,k);
-            if (association>max){
-                max=association;
-                idx = k;
-            }
-        }
-        if (idx!=-1){
-            objectsblob[idx].push_back(j);
-        }
-    }
-    for (int j=0; j<blobs.size(); j++){
-        float max=0;
-        int idx=-1;
-        for (int k=0; k<oaVector.size(); k++){
-            float association = oaVector[k].sumProb.at<float>(1,j);
-            if (association>max){
-                max=association;
-                idx = k;
-            }
-        }
-        if (idx!=-1){
-            blobsobject[idx].push_back(j);
-        }
     }
 }
 
@@ -473,20 +338,21 @@ void ObjectTracker::process(const Mat inputImage, Mat* outputImage){
     double occludedLow = 0.3;
     double occludedHigh = 0.6;
     Mat drawImg;
-    Mat filtimg;
-    inputImage.copyTo(drawImg);
-    //filterLTI.process(inputImage, &filtimg);
-    inputImage.copyTo(filtimg);
+    if (VISUALDEBUG){
+        inputImage.copyTo(drawImg);
+    }
 
     vector<Mat> probImages;
     vector<Mat> binImages;
+    Mat binImg;
+    if (VISUALDEBUG){
+        Mat temp(Mat::zeros(inputImage.size(), CV_8U));
+        temp.copyTo(binImg);
+    }
     Mat procimg;
     Mat mask;
-    preprocess(filtimg, procimg, mask);
+    preprocess(inputImage, procimg, mask);
     getProbImages(procimg, mask, probImages);
-
-    Mat binImg = Mat::zeros(probImages[0].size(), CV_8U);
-    imshow("prob", probImages[0]);
 
     vector<vector<Point2i>> blobs;
     vector<int> blobKinds;
@@ -500,11 +366,11 @@ void ObjectTracker::process(const Mat inputImage, Mat* outputImage){
             blobs.push_back(tempBlobs[j]);
             blobKinds.push_back(i);
         }
-        binImages.push_back(temp);
-        bitwise_or(temp, binImg, binImg);
+        if (VISUALDEBUG){
+            binImages.push_back(temp);
+            bitwise_or(temp, binImg, binImg);
+        }
     }
-
-    imshow("test",binImg);
 
     for (int k=0; k<blobs.size(); k++){
         double area = blobs[k].size();
@@ -533,10 +399,17 @@ void ObjectTracker::process(const Mat inputImage, Mat* outputImage){
         }
         */
 
-
+    int objKeys[objects.size()];
+    int tObjIdx = 0;
+    for (objMap::iterator it=objects.begin(); it!=objects.end(); ++it){
+        it->second->tracked = false;
+        objKeys[tObjIdx] = it->first;
+        tObjIdx++;
+    }
+     /*
     for (int j=0; j<objects.size(); j++){
         objects[j]->tracked = false;
-    }
+    }*/
 
     int supportPoints[objects.size()][blobs.size()];
     int blobsobject[objects.size()];
@@ -559,7 +432,7 @@ void ObjectTracker::process(const Mat inputImage, Mat* outputImage){
         for (int j=0; j<blobs[i].size(); j++){
             Point2i pt = blobs[i][j];
             for (int k=0; k<objects.size(); k++){
-                double dist = distEllipse2Point(objects[k]->ellipse, pt);
+                double dist = distEllipse2Point(objects[objKeys[k]]->ellipse, pt);
                 if (dist<1.0){
                     supportPoints[k][i]+=1;
                 }
@@ -587,6 +460,7 @@ void ObjectTracker::process(const Mat inputImage, Mat* outputImage){
         }
     }
 
+
     for (int j=0; j<objects.size(); j++){
         if (blobsobject[j] == -1){
             int mostSupport = 0;
@@ -613,7 +487,8 @@ void ObjectTracker::process(const Mat inputImage, Mat* outputImage){
                 double distList[objectsblob[i].size()];
                 for (int k=0; k<objectsblob[i].size(); k++){
                     int idx = objectsblob[i][k];
-                    distList[k] = distEllipse2Point(objects[idx]->ellipse, pt);
+                    int key = objKeys[idx];
+                    distList[k] = distEllipse2Point(objects[key]->ellipse, pt);
                     if (distList[k]<1.0){
                         claimed = true;
                         blobsForObjects[idx].push_back(pt);
@@ -640,18 +515,19 @@ void ObjectTracker::process(const Mat inputImage, Mat* outputImage){
 
     for (int i=0; i<objects.size(); i++){
         if (blobsobject[i]!=-1){
-            objects[i]->update(inputImage, blobsForObjects[i]);
+            objects[objKeys[i]]->update(inputImage, blobsForObjects[i]);
         }
     }
 
     for (int i=0; i<newBlobs.size(); i++){
         boost::shared_ptr<TrackedObject> temp(new TrackedObject(procimg, blobs[newBlobs[i]]));
         temp->kind = blobKinds[newBlobs[i]];
-        temp->id = nextObjectIdx++;
+        int id = nextObjectIdx++;
+        temp->id = id;
         int ctmp = (temp->id*21)%51 *10;
         Scalar color(ctmp>255?0:255-ctmp, ctmp>255?512-ctmp:ctmp, ctmp>255?ctmp-255:0);
         temp->color = color;
-        objects.push_back(temp);
+        objects[id] = temp;
     }
 
     /* cool multichannel access
@@ -667,17 +543,20 @@ void ObjectTracker::process(const Mat inputImage, Mat* outputImage){
     }*/
 
 
-    for (int i=0; i<objects.size(); i++){
-        vector<vector<Point> > contours;
-        if (objects[i]->contour.size()>0){
-            contours.push_back(objects[i]->contour);
-            drawContours(drawImg, contours, 0, objects[i]->color, 2);
-            ellipse(drawImg, objects[i]->ellipse, objects[i]->color, 1);
-            string id = to_string(objects[i]->id);
-            Point shifted = objects[i]->ellipse.center;
-            shifted.x += -4;
-            shifted.y += 4;
-            putText(drawImg, id, shifted, FONT_HERSHEY_SIMPLEX, 0.7, objects[i]->color, 2);
+    if (VISUALDEBUG){
+        for(objMap::iterator it=objects.begin(); it!=objects.end(); ++it){
+            vector<vector<Point> > contours;
+            boost::shared_ptr<TrackedObject> obj = it->second;
+            if (obj->contour.size()>0){
+                contours.push_back(obj->contour);
+                drawContours(drawImg, contours, 0, obj->color, 2);
+                ellipse(drawImg, obj->ellipse, obj->color, 1);
+                string id = to_string(obj->id);
+                Point shifted = obj->ellipse.center;
+                shifted.x += -4;
+                shifted.y += 4;
+                putText(drawImg, id, shifted, FONT_HERSHEY_SIMPLEX, 0.7, obj->color, 2);
+            }
         }
     }
     /*
@@ -712,20 +591,24 @@ void ObjectTracker::process(const Mat inputImage, Mat* outputImage){
     */
 
 
+   vector<int> deleteKeys;
 
-    for (int i=0; i<objects.size(); i++){
+   for(objMap::iterator it=objects.begin(); it!=objects.end(); ++it){
+        boost::shared_ptr<TrackedObject> obj = it->second;
         boost::system_time timenow = boost::get_system_time();
-        if (objects[i]->tracked){
-            objects[i]->timeLost = timenow;
+        if (obj->tracked){
+            obj->timeLost = timenow;
         }
         else {
-            boost::posix_time::time_duration duration = timenow-objects[i]->timeLost;
-        if (duration.total_milliseconds() > 300){
-            objects.erase(objects.begin()+i);
-            i--;
-            continue;
+            boost::posix_time::time_duration duration = timenow-obj->timeLost;
+            if (duration.total_milliseconds() > 300){
+                deleteKeys.push_back(it->first);
+            }
         }
-        }
+    }
+
+    for (int i=0; i<deleteKeys.size(); i++){
+        objects.erase(deleteKeys[i]);
     }
 
     drawImg.copyTo(*outputImage);
@@ -800,9 +683,11 @@ double distEllipse2Point(RotatedRect ellipse, Point2f pt){
     return distsq;
 }
 
-void hysteresisThreshold(const cv::Mat probImg, cv::Mat& binary, std::vector < std::vector<cv::Point2i> > &blobs, double lowThresh, double hiThresh){
+void hysteresisThreshold(const cv::Mat inputImg, cv::Mat& binary, std::vector < std::vector<cv::Point2i> > &blobs, double lowThresh, double hiThresh){
     int label_count = 2;
 
+    Mat probImg;
+    inputImg.copyTo(probImg);
     for(int y=0; y < probImg.rows; y++) {
         const float *row = probImg.ptr<float>(y);
         for(int x=0; x < probImg.cols; x++) {
@@ -811,7 +696,10 @@ void hysteresisThreshold(const cv::Mat probImg, cv::Mat& binary, std::vector < s
             }
 
             float ptVal = row[x];
-            floodFill(probImg, cv::Point(x,y), label_count, 0, ptVal-lowThresh, 1-ptVal, FLOODFILL_FIXED_RANGE);
+            cv::Rect rect;
+
+            int flags = 4 + FLOODFILL_FIXED_RANGE;
+            floodFill(probImg, cv::Point(x,y), label_count, &rect, ptVal-lowThresh, 1-ptVal, flags);
 
             label_count++;
         }
@@ -841,50 +729,6 @@ void hysteresisThreshold(const cv::Mat probImg, cv::Mat& binary, std::vector < s
 
     temp.copyTo(binary);
 
-}
-
-void FindBlobs(const cv::Mat &binary, std::vector < std::vector<cv::Point2i> > &blobs)
-{
-    blobs.clear();
-
-    // Fill the label_image with the blobs
-    // 0  - background
-    // 1  - unlabelled foreground
-    // 2+ - labelled foreground
-
-    cv::Mat label_image;
-    binary.convertTo(label_image, CV_32SC1);
-
-    int label_count = 2; // starts at 2 because 0,1 are used already
-
-    for(int y=0; y < label_image.rows; y++) {
-        int *row = (int*)label_image.ptr(y);
-        for(int x=0; x < label_image.cols; x++) {
-            if(row[x] != 1) {
-                continue;
-            }
-
-            cv::Rect rect;
-            cv::floodFill(label_image, cv::Point(x,y), label_count, &rect, 0, 0, 4);
-
-            std::vector <cv::Point2i> blob;
-
-            for(int i=rect.y; i < (rect.y+rect.height); i++) {
-                int *row2 = (int*)label_image.ptr(i);
-                for(int j=rect.x; j < (rect.x+rect.width); j++) {
-                    if(row2[j] != label_count) {
-                        continue;
-                    }
-
-                    blob.push_back(cv::Point2i(j,i));
-                }
-            }
-
-            blobs.push_back(blob);
-
-            label_count++;
-        }
-    }
 }
 
 double distLine2Point(Point2d pt1, Point2d pt2, Point2d pt3){

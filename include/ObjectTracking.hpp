@@ -59,17 +59,7 @@ class TrackedObject{
         void unOcclude();
 };
 
-class LogManager{
-    protected:
-	boost::filesystem::path rootDir;
-	int nextId;
-	clock_t trackingStarted;
-    public:
-	std::vector<boost::filesystem::path> logFilePaths;
-	LogManager();
-	void store(TrackedObject obj);
-	int getId();
-};
+typedef map<int,boost::shared_ptr<TrackedObject> > objMap;
 
 class ObjectTracker : public ProcessingElement{
     protected:
@@ -77,13 +67,12 @@ class ObjectTracker : public ProcessingElement{
     int frameNumber;
     int nextObjectIdx;
     public:
-    vector<boost::shared_ptr<TrackedObject> > objects;
+    objMap objects;
+    //vector<boost::shared_ptr<TrackedObject> > objects;
     vector<RotatedRect> lastFrameBlobs;
 	ObjectTracker();
     void preprocess(const Mat image, Mat& outputImage, Mat& mask);
     void getProbImages(const Mat procimg, const Mat mask, vector<Mat>& outputImages);
-    void binarize(const Mat inputImage, Mat& outputImage);
-    void blobObjectCorrespond(const vector<Mat> probImg, vector<vector<Point2i> > blobs, vector<boost::shared_ptr<TrackedObject> > objects, vector<vector<int> >& blobsobject, vector<vector<int> >& objectsblob);
 	void process(const Mat inputImage, Mat* outputImage);
     void addObjectKind(const vector<Mat> image, const vector<Mat> outMask);
 
@@ -93,15 +82,13 @@ bool intersectingOBB(RotatedRect obb1, RotatedRect obb2);
 
 double distEllipse2Point(RotatedRect ellipse, Point2f pt);
 
-void FindBlobs(const cv::Mat &binary, std::vector < std::vector<cv::Point2i> > &blobs);
-
 double distLine2Point(Point2d pt1, Point2d pt2, Point2d pt3);
 
 double distRotatedRect(RotatedRect r1, RotatedRect r2);
 
 void occludeBy(boost::shared_ptr<TrackedObject> underObject, boost::shared_ptr<TrackedObject> overObject);
 
-void hysteresisThreshold(const cv::Mat probImg, cv::Mat& binary, std::vector < std::vector<cv::Point2i> > &blobs, double lowThresh, double hiThresh);
+void hysteresisThreshold(const cv::Mat inputImg, cv::Mat& binary, std::vector < std::vector<cv::Point2i> > &blobs, double lowThresh, double hiThresh);
 
 
 #endif

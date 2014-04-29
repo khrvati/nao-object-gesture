@@ -28,7 +28,6 @@ using namespace boost::filesystem;
 int main(void)
 {
     ConnectedCamera camera(1);
-    //NAOCamera camera("192.168.1.106",9559);
     ImageAcquisition* capture = &camera;
     Mat frame;
     
