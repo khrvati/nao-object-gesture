@@ -14,7 +14,7 @@ option(TRACKER_IS_REMOTE
 
 option(TESTMODE
     "Program is compiled for testing with visual output to screen "
-    OFF)
+    ON)
 if(TESTMODE)
     ADD_DEFINITIONS("-DTESTMODE")
 endif()
@@ -30,6 +30,10 @@ qi_stage_lib(ImgProcPipeline)
 qi_create_lib(ObjectTracking STATIC SRC include/ObjectTracking.hpp src/ObjectTracking.cpp)
 qi_use_lib(ObjectTracking BOOST BOOST_FILESYSTEM OPENCV2_CORE OPENCV2_HIGHGUI OPENCV2_IMGPROC OPENCV2_VIDEO ImgProcPipeline)
 qi_stage_lib(ObjectTracking)
+
+qi_create_lib(GestureRecognition STATIC SRC include/GestureRecognition.hpp src/GestureRecognition.cpp)
+qi_use_lib(GestureRecognition BOOST BOOST_DATE_TIME BOOST_FILESYSTEM OPENCV2_CORE)
+qi_stage_lib(GestureRecognition)
 
 qi_create_lib(ModuleImpl STATIC include/NAOObjectGesture.h src/NAOObjectGesture.cpp)
 qi_use_lib(ModuleImpl ALCOMMON ALVISION ALPROXIES ALERROR BOOST BOOST_THREAD BOOST_FILESYSTEM BOOST_DATE_TIME OPENCV2_CORE OPENCV2_HIGHGUI ImgProcPipeline ObjectTracking)

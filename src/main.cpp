@@ -38,7 +38,7 @@ int main(void)
     
     vector<double> num = {0.87};
     vector<double> den = {1, -0.13};
-    LTIFilter ltifilt(num, den, 1/30.0);
+    ColorHistBackProject ltifilt(colorCode, hSize);
     ProcessingElement *generalPtr = static_cast<ProcessingElement*>(&ltifilt);
     pipeline.push_back(generalPtr);
     
@@ -126,6 +126,8 @@ int main(void)
         window.display(frame);
         
         int c = waitKey(10);
+        window.onKeyPress(c);
+
 	if((char)c == 27) {break;} // escape
     }
 	

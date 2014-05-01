@@ -9,6 +9,7 @@
 #include <alcommon/albroker.h>
 #include <alproxies/almemoryproxy.h>
 #include <alproxies/alvideodeviceproxy.h>
+#include <alproxies/almotionproxy.h>
 #include <alvision/alimage.h>
 #include <alvision/alvisiondefinitions.h>
 
@@ -28,23 +29,29 @@
 #define COLORSPACE AL::kBGRColorSpace
 
 
-
 using namespace boost::filesystem;
 
 struct NAOObjectGesture::Impl{
     NAOObjectGesture &module;
     boost::shared_ptr<AL::ALMemoryProxy> memoryProxy;
-    boost::shared_ptr<AL::ALVideoDeviceProxy> camProxy;
-    std::string camProxyName;
-    boost::shared_ptr<ObjectTracker> objectTracker;
     vector<int> imgTimestamp;
     vector<std::string> eventNames;
     vector<int> objectIds;
+
+    boost::shared_ptr<AL::ALVideoDeviceProxy> camProxy;
+    std::string camProxyName;
+    Size imsize;
+    int camIdx;
+    int FPS;
+
+    boost::shared_ptr<AL::ALMotionProxy> motionProxy;
+    int focusObjectId;
+
+    boost::shared_ptr<ObjectTracker> objectTracker;
     boost::mutex objTrackerLock;
 
     boost::mutex fileLock;
 
-    int FPS;
     boost::posix_time::time_duration samplingPeriod;
     boost::thread *t;
     bool stopThread;
@@ -53,12 +60,13 @@ struct NAOObjectGesture::Impl{
 
 
     Impl(NAOObjectGesture& mod)
-        : module(mod), t(NULL), FPS(20), samplingPeriod(boost::posix_time::milliseconds(50))
+        : module(mod), t(NULL), FPS(20), samplingPeriod(boost::posix_time::milliseconds(50)), focusObjectId(-1)
     {
         try{
             objectTracker = boost::shared_ptr<ObjectTracker>(new ObjectTracker());
             memoryProxy = boost::shared_ptr<AL::ALMemoryProxy>(new AL::ALMemoryProxy(module.getParentBroker()));
             camProxy = boost::shared_ptr<AL::ALVideoDeviceProxy>(new AL::ALVideoDeviceProxy(module.getParentBroker()));
+            motionProxy = boost::shared_ptr<AL::ALMotionProxy>(new AL::ALMotionProxy(module.getParentBroker()));
         } catch (std::exception &e){
             qiLogError("NAOObjectGesture") << "Failed to initialize NAOObjectGesture class: " << e.what() << std::endl;
         }
@@ -69,6 +77,10 @@ struct NAOObjectGesture::Impl{
         if (!camProxy){
             qiLogError("NAOObjectGesture") << "Failed to get a proxy to ALVideoDevice" << std::endl;
             throw std::runtime_error("Failed to get a proxy to ALVideoDevice");
+        }
+        if (!motionProxy){
+            qiLogError("NAOObjectGesture") << "Failed to get a proxy to ALMotion" << std::endl;
+            throw std::runtime_error("Failed to get a proxy to ALMotion");
         }
     }
 
@@ -88,12 +100,18 @@ struct NAOObjectGesture::Impl{
         stopThreadLock.lock();
         stopThreadCopy = stopThread;
         stopThreadLock.unlock();
-        camProxyName = camProxy->subscribeCamera("NAOObjectGesture", 0, RESOLUTION, COLORSPACE, FPS);
+        camProxyName = camProxy->subscribeCamera("NAOObjectGesture", camIdx, RESOLUTION, COLORSPACE, FPS);
+        switch (RESOLUTION){
+            case AL::kQQVGA: imsize = Size(160,120); break;
+            case AL::kQVGA: imsize = Size(320,240); break;
+            case AL::kVGA: imsize = Size(640,480); break;
+        }
         boost::system_time tickTime = boost::get_system_time();
         int ticks = 0;
         boost::posix_time::time_duration thousandFrameTime(boost::posix_time::seconds(0));
         while(!stopThreadCopy){
             //do things
+
             ticks+=1;
             boost::system_time now = boost::get_system_time();
             objTrackerLock.lock();
@@ -101,12 +119,6 @@ struct NAOObjectGesture::Impl{
             Mat inputImage;
             try{
                 const AL::ALImage* img = (AL::ALImage*)camProxy->getImageLocal(camProxyName);
-                Size imsize;
-                switch (RESOLUTION){
-                    case AL::kQQVGA: imsize = Size(160,120); break;
-                    case AL::kQVGA: imsize = Size(320,240); break;
-                    case AL::kVGA: imsize = Size(640,480); break;
-                }
                 Mat imgHeader = Mat(imsize, CV_8UC3, (void*)img->getData());
                 imgHeader.copyTo(inputImage);
                 camProxy->releaseImage(camProxyName);
@@ -118,10 +130,19 @@ struct NAOObjectGesture::Impl{
                 stopThreadLock.unlock();
             }
 
-
             Mat disregard;
             objectTracker->process(inputImage, &disregard);
 
+            if (focusObjectId!=-1){
+                objMap::iterator it = objectTracker->objects.find(focusObjectId);
+                if (it != objectTracker->objects.end()){
+                    AL::ALValue newAngles = pt2headAngles(it->second->ellipse.center);
+                    motionProxy->setAngles("Head", newAngles, 0.4);
+                }
+                else {
+                    focusObjectId = -1;
+                }
+            }
             /* manual timestamp from posix_time */
             boost::posix_time::time_duration lastImgTime = boost::get_system_time() - time_t_epoch;
             long timesec = lastImgTime.total_seconds();
@@ -131,15 +152,13 @@ struct NAOObjectGesture::Impl{
             imgTimestamp.push_back(timesec);
             imgTimestamp.push_back(timemillis);
             //this is time since epoch
+            objTrackerLock.unlock();
 
             int numObj = objectTracker->objects.size();
             for (int j=0; j<objectIds.size(); j++){
-                AL::ALValue objData;
-                objMap::iterator it = objectTracker->objects.find(objectIds[j]);
-                if (it == objectTracker->objects.end()){
+                AL::ALValue objData = getObjData(objectIds[j],15);
+                if (objData.getSize() == 0 ){
                     qiLogInfo("NAOObjectGesture") << "Object " << objectIds[j] << " permanently lost. Notifying subscribers and deleting event " << eventNames[j] << std::endl;
-                    objData.arrayPush(-1);
-                    objData.arrayPush(-1);
                     memoryProxy->raiseMicroEvent(eventNames[j], objData);
                     memoryProxy->removeMicroEvent(eventNames[j]);
                     eventNames.erase(eventNames.begin()+j);
@@ -147,17 +166,8 @@ struct NAOObjectGesture::Impl{
                     j--;
                     continue;
                 }
-                boost::shared_ptr<TrackedObject> obj = it->second;
-                objData.arrayPush(it->first);
-                objData.arrayPush(obj->kind);
-                AL::ALValue alpt;
-                alpt.arrayPush(obj->ellipse.center.x);
-                alpt.arrayPush(obj->ellipse.center.y);
-                objData.arrayPush(alpt);
-                objData.arrayPush(obj->area);
                 memoryProxy->raiseMicroEvent(eventNames[j], objData);
             }
-            objTrackerLock.unlock();
             boost::posix_time::time_duration oneLoop = boost::get_system_time() - now;
             thousandFrameTime += oneLoop;
 
@@ -176,6 +186,47 @@ struct NAOObjectGesture::Impl{
         }
         camProxy->unsubscribe(camProxyName);
     }
+
+    vector<float> pt2headAngles(Point2i pt){
+        float normx = 1.0f*pt.x/imsize.width;
+        float normy = 1.0f*pt.y/imsize.height;
+        std::vector<float> normpos;
+        normpos.push_back(normx);
+        normpos.push_back(normy);
+        std::vector<float> angpos;
+        angpos = camProxy->getAngularPositionFromImagePosition(camIdx, normpos);
+        std::vector<float> headAngles;
+        headAngles = motionProxy->getAngles("Head", true);
+        headAngles[0]+=angpos[0];
+        headAngles[1]+=angpos[1];
+        return headAngles;
+    }
+
+    AL::ALValue getObjData(int objId, int dataCode){
+        AL::ALValue objData;
+        objTrackerLock.lock();
+        AL::ALValue timestamp(imgTimestamp);
+        objData.arrayPush(timestamp);
+        objMap::iterator it = objectTracker->objects.find(objId);
+        if (it != objectTracker->objects.end()){
+            boost::shared_ptr<TrackedObject> obj = it->second;
+            if (dataCode & 1){
+                objData.arrayPush(it->first);
+            }
+            if (dataCode & 2){
+                objData.arrayPush(obj->kind);
+            }
+            if (dataCode & 4){
+                AL::ALValue alpt = pt2headAngles(obj->ellipse.center);
+                objData.arrayPush(alpt);
+            }
+            if (dataCode & 8){
+                objData.arrayPush(obj->area);
+            }
+        }
+        objTrackerLock.unlock();
+        return objData;
+    }
 };
 
 
@@ -187,6 +238,7 @@ NAOObjectGesture::NAOObjectGesture(boost::shared_ptr<AL::ALBroker> pBroker, cons
 
     functionName("startTracker", getName(), "Start tracking all initialized kinds of objects.");
     addParam("fps", "Video stream framerate");
+    addParam("camIdx", "Index of the camera in the video system. 0 - top camera, 1 - bottom camera");
     BIND_METHOD(NAOObjectGesture::startTracker);
 
     functionName("stopTracker", getName(), "Stop object tracker without deleting object kinds.");
@@ -213,6 +265,15 @@ NAOObjectGesture::NAOObjectGesture(boost::shared_ptr<AL::ALBroker> pBroker, cons
     setReturn("eventAdded", "Boolean value. Returns true if event was added or already exists, false otherwise");
     BIND_METHOD(NAOObjectGesture::trackObject);
 
+    functionName("focusObject", getName(), "Focus NAO on object and track it using head movements");
+    addParam("objId", "Identifier of object to be tracked");
+    setReturn("eventAdded", "Boolean value. Returns true if object is being tracked, false otherwise");
+    BIND_METHOD(NAOObjectGesture::focusObject);
+
+
+    functionName("stopFocus", getName(), "Stop tracking objects with head. Note: doesn't return head to neutral position");
+    BIND_METHOD(NAOObjectGesture::stopFocus);
+
 }
 
 NAOObjectGesture::~NAOObjectGesture(){}
@@ -234,11 +295,12 @@ void NAOObjectGesture::exit(){
     AL::ALModule::exit();
 }
 
-void NAOObjectGesture::startTracker(const int &FPS){
+void NAOObjectGesture::startTracker(const int &FPS, const int &camIdx){
     stopTracker();
     qiLogInfo("NAOObjectGesture") << "Starting ObjectTracker with image acquisition at " << FPS << " FPS" << std::endl;
     try{
         impl->FPS = FPS;
+        impl->camIdx = camIdx;
         impl->samplingPeriod = boost::posix_time::milliseconds(1000/FPS);
         impl->stopThreadLock.lock();
         impl->stopThread=false;
@@ -322,9 +384,9 @@ AL::ALValue NAOObjectGesture::getObjectList(const int &dataCode){
         AL::ALValue retval;
         impl->objTrackerLock.lock();
         AL::ALValue timestamp(impl->imgTimestamp);
-        retval.arrayPush(timestamp);
         for (objMap::iterator it=impl->objectTracker->objects.begin(); it!=impl->objectTracker->objects.end(); ++it){
             AL::ALValue objData;
+            objData.arrayPush(timestamp);
             boost::shared_ptr<TrackedObject> obj = it->second;
             if (dataCode & 1){
                 objData.arrayPush(it->first);
@@ -354,34 +416,11 @@ AL::ALValue NAOObjectGesture::getObjectList(const int &dataCode){
 AL::ALValue NAOObjectGesture::getObjectData(const AL::ALValue& objectIds, const int &dataCode){
     try{
         AL::ALValue retval;
-        impl->objTrackerLock.lock();
-        AL::ALValue timestamp(impl->imgTimestamp);
-        retval.arrayPush(timestamp);
         for (int j=0; j<objectIds.getSize(); j++){
             int objId = objectIds[j];
-            AL::ALValue objData;
-            objMap::iterator it = impl->objectTracker->objects.find(objId);
-            if (it != impl->objectTracker->objects.end()){
-                boost::shared_ptr<TrackedObject> obj = it->second;
-                if (dataCode & 1){
-                    objData.arrayPush(it->first);
-                }
-                if (dataCode & 2){
-                    objData.arrayPush(obj->kind);
-                }
-                if (dataCode & 4){
-                    AL::ALValue alpt;
-                    alpt.arrayPush(obj->ellipse.center.x);
-                    alpt.arrayPush(obj->ellipse.center.y);
-                    objData.arrayPush(alpt);
-                }
-                if (dataCode & 8){
-                    objData.arrayPush(obj->area);
-                }
-            }
+            AL::ALValue objData = impl->getObjData(objId, dataCode);
             retval.arrayPush(objData);
-        }
-        impl->objTrackerLock.unlock();
+        };
         return retval;
     } catch (std::exception &e){
         qiLogError("NAOObjectGesture") << "getObjectPositions failed: " << e.what() << std::endl;
@@ -417,4 +456,29 @@ bool NAOObjectGesture::trackObject(const string &name, const int &objId){
     impl->objTrackerLock.unlock();
     qiLogInfo("NAOObjectGesture") << "Now tracking object " << objId << " using event " << name << std::endl;
     return true;
+}
+
+bool NAOObjectGesture::focusObject(const int &objId){
+    impl->objTrackerLock.lock();
+    if (objId == impl->focusObjectId){
+        qiLogInfo("NAOObjectGesture") << "Attempted to refocus on already focused object." << std::endl;
+        impl->objTrackerLock.unlock();
+        return true;
+    }
+    objMap::iterator it = impl->objectTracker->objects.find(objId);
+    if (it == impl->objectTracker->objects.end()){
+        qiLogError("NAOObjectGesture") << "Attempted to focus on nonexistent object." << std::endl;
+        impl->objTrackerLock.unlock();
+        return false;
+    }
+    impl->focusObjectId = objId;
+    impl->objTrackerLock.unlock();
+    qiLogInfo("NAOObjectGesture") << "Now focused on object " << objId << ". Tracking with NAO head." << std::endl;
+    return true;
+}
+
+void NAOObjectGesture::stopFocus(){
+    impl->objTrackerLock.lock();
+    impl->focusObjectId = -1;
+    impl->objTrackerLock.unlock();
 }

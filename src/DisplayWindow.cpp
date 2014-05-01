@@ -6,6 +6,8 @@
 #include "ObjectTracking.hpp"
 #include <chrono>
 
+namespace fs = boost::filesystem;
+
 DisplayWindow::DisplayWindow(String name){
   windowName=name;
   dragStartL = Point(-1,-1);
@@ -166,4 +168,30 @@ void DisplayWindow:: onDragStop(){
     std::cout << e.msg << std::endl;
       }
   }
+}
+
+void DisplayWindow::onKeyPress(int key){
+    if (key!=-1){
+        char ckey = (char)key;
+        std::cout << "Keypress: " << (int)ckey << std::endl;
+        if (ckey==10){
+
+            fs::path full_path;
+            time_t rawtime;
+            struct tm * timeinfo;
+            char buffer [80];
+            time (&rawtime);
+            timeinfo = localtime (&rawtime);
+            strftime(buffer, 80, "%F_%H-%M-%S.jpg", timeinfo);
+
+            full_path = fs::system_complete(fs::path(buffer));
+
+            vector<int> compression_params;
+            compression_params.push_back(CV_IMWRITE_JPEG_QUALITY);
+            compression_params.push_back(100);
+
+            std::string spath = full_path.c_str();
+            imwrite(spath, lastDispImg, compression_params);
+        }
+    }
 }

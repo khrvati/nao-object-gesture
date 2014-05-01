@@ -63,19 +63,6 @@ class ProcessingElement{
 	virtual void process(const Mat inputImage, Mat* outputImage) = 0;
 };
 
-class LTIFilter : public ProcessingElement{
-    protected:
-	vector<Mat> out;
-	vector<Mat> in;
-	vector<double> numerator;
-	vector<double> denominator;
-	double discretizationTime;
-    public:
-	LTIFilter();
-	LTIFilter(vector<double> num, vector<double> den, double T);
-	void process(const Mat inputImage, Mat* outputImage);
-};
-
 /**
  * 2D histogram-based image flattening class. Supports HSV, HLS and YUV colorspaces.
  */

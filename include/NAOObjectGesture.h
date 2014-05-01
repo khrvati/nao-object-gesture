@@ -16,13 +16,16 @@ public:
     virtual void init();
     void exit();
 
-    void startTracker(const int &milli);
+    void startTracker(const int &milli, const int &camIdx);
     void stopTracker();
 
     void loadDataset(const std::string& dataFolder);
     AL::ALValue getObjectList(const int& dataCode);
     AL::ALValue getObjectData(const AL::ALValue &objectIds, const int& dataCode);
     bool trackObject(const std::string& name, const int& objId);
+    bool focusObject(const int &objId);
+    void stopFocus();
+
 private:
     struct Impl;
     boost::shared_ptr<Impl> impl;

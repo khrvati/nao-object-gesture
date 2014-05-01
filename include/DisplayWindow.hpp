@@ -29,6 +29,7 @@ class DisplayWindow{
       DisplayWindow(String name);
       DisplayWindow(String name, std::vector<ProcessingElement*> prcElm, std::vector<std::vector<int>> pipelineVec);
       virtual void display(const Mat image);
+      virtual void onKeyPress(int key);
 };
 
 
