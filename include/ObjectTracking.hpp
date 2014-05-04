@@ -9,6 +9,7 @@
 #include <boost/thread/thread_time.hpp>
 #include <boost/ref.hpp>
 #include "ImgProcPipeline.hpp"
+#include "GestureRecognition.hpp"
 #include <ctime>
 
 using namespace std;
@@ -30,6 +31,7 @@ class TrackedObject{
     protected:
         Size imageSize;
     public:
+        Trajectory traj;
         int id;
         int kind;
         boost::system_time timeLost;
@@ -57,19 +59,21 @@ class TrackedObject{
         RotatedRect useCamShift(const Mat probImage);
         double compare(boost::shared_ptr<TrackedObject> otherObject);
         void unOcclude();
+        void updateTrajectory(Point2f pt, float time);
 };
 
 typedef map<int,boost::shared_ptr<TrackedObject> > objMap;
 
 class ObjectTracker : public ProcessingElement{
     protected:
-    vector<UpdatableHistogram> objectKinds;
     int frameNumber;
     int nextObjectIdx;
     public:
+    vector<UpdatableHistogram> objectKinds;
     objMap objects;
     //vector<boost::shared_ptr<TrackedObject> > objects;
     vector<RotatedRect> lastFrameBlobs;
+    vector<int> largestObjOfKind;
 	ObjectTracker();
     void preprocess(const Mat image, Mat& outputImage, Mat& mask);
     void getProbImages(const Mat procimg, const Mat mask, vector<Mat>& outputImages);

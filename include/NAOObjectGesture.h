@@ -26,6 +26,12 @@ public:
     bool focusObject(const int &objId);
     void stopFocus();
 
+    void addGesture(const std::string &name, const AL::ALValue &dirList);
+    void removeGesture(const std::string &name);
+
+    AL::ALValue getGestureList();
+    AL::ALValue getEventList();
+    bool removeEvent(const std::string &name);
 private:
     struct Impl;
     boost::shared_ptr<Impl> impl;

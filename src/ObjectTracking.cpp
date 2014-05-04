@@ -7,6 +7,7 @@
 #include "boost/filesystem/fstream.hpp"
 #include "boost/date_time/posix_time/posix_time.hpp"
 #include <boost/thread/thread_time.hpp>
+#include "GestureRecognition.hpp"
 #include <cmath>
 #include <ctime>
 #include <cstdlib>
@@ -159,6 +160,10 @@ void TrackedObject::update(const Mat image, const vector<Point> inContour, bool 
     ellipse = newEllipse;
 }
 
+void TrackedObject::updateTrajectory(Point2f pt, float time){
+    traj.append(pt, time);
+}
+
 void TrackedObject::updateArea(){
     if (points.size()>0){
         area = points.size();
@@ -175,15 +180,15 @@ vector<Point> TrackedObject::pointsFromContour(){
     conts.push_back(contour);
     drawContours(temp, conts, 0, Scalar(255), CV_FILLED);
     for (int i=0; i<temp.rows; i++){
-	for (int j=0; j<temp.cols; j++){
-	    if (temp.at<int>(i,j)){
-		points.push_back(Point(i,j));
-	    }
-	}
+        for (int j=0; j<temp.cols; j++){
+            if (temp.at<int>(i,j)){
+                points.push_back(Point(i,j));
+            }
+        }
     }
     return points;
 }
-  
+
 RotatedRect TrackedObject::useCamShift(const Mat probImage){
     //double size = min(ellipse.size.height, ellipse.size.width);
     //Point tl(ellipse.center.x-size/2, ellipse.center.y-size/2);
@@ -191,7 +196,7 @@ RotatedRect TrackedObject::useCamShift(const Mat probImage){
     Rect box = ellipse.boundingRect();
     return CamShift(probImage, box, TermCriteria( TermCriteria::EPS | TermCriteria::COUNT, 10, 1 ));
 }
-  
+
 double TrackedObject::compare(boost::shared_ptr<TrackedObject> otherObject){
     if (intersectingOBB(ellipse, otherObject->ellipse)){
         return 0;
@@ -280,16 +285,17 @@ void TrackedObject::unOcclude(){
 
 ObjectTracker::ObjectTracker(){    
     frameNumber = 0;
-    nextObjectIdx = 0;
+    nextObjectIdx = 1;
 }
 
 void ObjectTracker::preprocess(const Mat image, Mat& outputImage, Mat& mask){
     Mat procimg;
     blur(image, procimg, Size(5,5));
     cvtColor(procimg, procimg, CV_BGR2YCrCb);
-    Scalar lowRange = Scalar(40,0,0);
-    Scalar highRange = Scalar(215,255,255);
-    inRange(procimg, lowRange, highRange, mask);
+    //Scalar lowRange = Scalar(40,0,0);
+    //Scalar highRange = Scalar(215,255,255);
+    //inRange(procimg, lowRange, highRange, mask);
+    mask = Mat::ones(image.size(), CV_8U)*255;
     procimg.convertTo(outputImage, CV_32F);
 }
 
@@ -314,6 +320,7 @@ void ObjectTracker::addObjectKind(const vector<Mat> image, const vector<Mat> out
 
     objHist.fromImage(procimg, mask);
     objectKinds.push_back(objHist);
+    largestObjOfKind.push_back(0);
     Mat temp;
     resize(objectKinds.back().normalized, temp, Size(300,300),0,0, INTER_NEAREST);
     //objectKinds.back().makeGMM(3,4,0.01);
@@ -360,7 +367,7 @@ void ObjectTracker::process(const Mat inputImage, Mat* outputImage){
         //binarize the probability image
         Mat temp;
         vector<vector<Point2i>> tempBlobs;
-        hysteresisThreshold(probImages[i], temp, tempBlobs, 0.15, 0.5);
+        hysteresisThreshold(probImages[i], temp, tempBlobs, 0.3, 0.7);
         objectKinds[i].update(procimg, 0.8, temp);
         for (int j=0; j<tempBlobs.size(); j++){
             blobs.push_back(tempBlobs[j]);
@@ -379,7 +386,7 @@ void ObjectTracker::process(const Mat inputImage, Mat* outputImage){
             k--;
         }
     }
-        /* or use simple 2-means clustering to extract only larger blobs
+    /* or use simple 2-means clustering to extract only larger blobs
         if (blobs.size()>4){
             double maxArea = blobs[0].size();
             double minArea = blobs[0].size();
@@ -406,7 +413,7 @@ void ObjectTracker::process(const Mat inputImage, Mat* outputImage){
         objKeys[tObjIdx] = it->first;
         tObjIdx++;
     }
-     /*
+    /*
     for (int j=0; j<objects.size(); j++){
         objects[j]->tracked = false;
     }*/
@@ -516,6 +523,9 @@ void ObjectTracker::process(const Mat inputImage, Mat* outputImage){
     for (int i=0; i<objects.size(); i++){
         if (blobsobject[i]!=-1){
             objects[objKeys[i]]->update(inputImage, blobsForObjects[i]);
+            if (VISUALDEBUG){
+                objects[objKeys[i]]->updateTrajectory(objects[objKeys[i]]->ellipse.center,1);
+            }
         }
     }
 
@@ -556,10 +566,32 @@ void ObjectTracker::process(const Mat inputImage, Mat* outputImage){
                 shifted.x += -4;
                 shifted.y += 4;
                 putText(drawImg, id, shifted, FONT_HERSHEY_SIMPLEX, 0.7, obj->color, 2);
+                if (true) {
+                    //obj->traj.simplify(10);
+                    Gesture updown({2,1,0,7,6});
+                    vector<int> segments = updown.existsInDebug(obj->traj, false);
+                    if (segments.size()>0){
+                        for (int j=0; j<segments.size(); j+=2){
+                            Scalar color;
+                            switch (segments[j+1]){
+                            case -1: color = Scalar(0,0,255); break;
+                            case 0: color = Scalar(0,255,255); break;
+                            case 1: color = Scalar(0,255,0); break;
+                            }
+                            circle(drawImg, obj->traj.points[segments[j]], 4, color, -1);
+                        }
+                    }
+
+                }
+                if (obj->traj.points.size() > 1){
+                    for (int i=0; i<obj->traj.points.size()-1; i++){
+                        line(drawImg, obj->traj.points[i], obj->traj.points[i+1], obj->color, 1);
+                    }
+                }
             }
         }
     }
-    /*
+/*
     for (int i=0; i<objects.size(); i++){
         boost::shared_ptr<TrackedObject> obj = objects[i];
         Size temp = obj->ellipse.size;
@@ -591,9 +623,9 @@ void ObjectTracker::process(const Mat inputImage, Mat* outputImage){
     */
 
 
-   vector<int> deleteKeys;
+    vector<int> deleteKeys;
 
-   for(objMap::iterator it=objects.begin(); it!=objects.end(); ++it){
+    for (objMap::iterator it=objects.begin(); it!=objects.end(); ++it){
         boost::shared_ptr<TrackedObject> obj = it->second;
         boost::system_time timenow = boost::get_system_time();
         if (obj->tracked){
@@ -601,7 +633,7 @@ void ObjectTracker::process(const Mat inputImage, Mat* outputImage){
         }
         else {
             boost::posix_time::time_duration duration = timenow-obj->timeLost;
-            if (duration.total_milliseconds() > 300){
+            if (duration.total_milliseconds() > 500){
                 deleteKeys.push_back(it->first);
             }
         }
@@ -611,8 +643,23 @@ void ObjectTracker::process(const Mat inputImage, Mat* outputImage){
         objects.erase(deleteKeys[i]);
     }
 
+
+    largestObjOfKind.clear();
+    largestObjOfKind.resize(objectKinds.size(),0);
+    vector<float> maxArea;
+    maxArea.resize(objectKinds.size(),0);
+    for (objMap::iterator it=objects.begin(); it!=objects.end(); ++it){
+        for (int i=0; i<objectKinds.size(); i++){
+            float area = it->second->getArea();
+            if (it->second->kind == i && area>maxArea[i]){
+                largestObjOfKind[i]=it->first;
+                maxArea[i]=area;
+            }
+        }
+    }
+
     drawImg.copyTo(*outputImage);
-    
+
     frameNumber++;
 }
 
@@ -633,10 +680,10 @@ bool intersectingOBB(RotatedRect obb1, RotatedRect obb2){
     Mat points2(2,4,CV_32F);
     
     for (int i=0; i<4; i++){
-	points1.at<float>(0,i)=vertices1[i].x;
-	points1.at<float>(1,i)=vertices1[i].y;
-	points2.at<float>(0,i)=vertices2[i].x;
-	points2.at<float>(1,i)=vertices2[i].y;
+        points1.at<float>(0,i)=vertices1[i].x;
+        points1.at<float>(1,i)=vertices1[i].y;
+        points2.at<float>(0,i)=vertices2[i].x;
+        points2.at<float>(1,i)=vertices2[i].y;
     }
     
     Mat pt1rot = rot1*points1;
@@ -655,7 +702,7 @@ bool intersectingOBB(RotatedRect obb1, RotatedRect obb2){
     minMaxLoc(pt2rot.row(1), &miny2, &maxy2);
     
     if (minx1>maxx2 || minx2>maxx1 || miny1>maxy2 || miny2>maxy1){
-	return false;
+        return false;
     }
     
     pt1rot = rot2*points1;
@@ -666,7 +713,7 @@ bool intersectingOBB(RotatedRect obb1, RotatedRect obb2){
     minMaxLoc(pt2rot.row(1), &miny2, &maxy2);
     
     if (minx1>maxx2 || minx2>maxx1 || miny1>maxy2 || miny2>maxy1){
-	return false;
+        return false;
     }
     
     return true;
