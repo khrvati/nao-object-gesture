@@ -28,7 +28,7 @@ using namespace boost::filesystem;
 int main(void)
 {
     ConnectedCamera camera(1);
-    //NAOCamera camera("192.168.1.105",9559);
+    //NAOCamera camera("192.168.1.104",9559);
     ImageAcquisition* capture = &camera;
     Mat frame;
     
@@ -68,8 +68,8 @@ int main(void)
     generalPtr = static_cast<ProcessingElement*>(&objtrack);
     pipeline.push_back(generalPtr);
 
-    path dataDir("/home/kruno/trainingData/cup/Dataset");
-    path gTruthDir("/home/kruno/trainingData/cup/GroundTruth");
+    path dataDir("/home/kruno/trainingData/ERF/cup/Dataset");
+    path gTruthDir("/home/kruno/trainingData/ERF/cup/GroundTruth");
     vector<Mat> images;
     vector<Mat> masks;
     if (exists(dataDir) && exists(gTruthDir) && is_directory(dataDir) && is_directory(gTruthDir)){
@@ -88,11 +88,12 @@ int main(void)
                 }
             }
         }
-        //objtrack.addObjectKind(images, masks);
+        objtrack.addObjectKind(images, masks);
         std::cout << "Loaded " << images.size() << " skin images" << std::endl;
     }
     images.clear();
     masks.clear();
+    imshow("asdf", objtrack.objectKinds[0].normalized);
 
     OpticalFlow optFlow;
     generalPtr = static_cast<ProcessingElement*>(&optFlow);

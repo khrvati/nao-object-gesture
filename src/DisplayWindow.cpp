@@ -52,38 +52,6 @@ void DisplayWindow::display(const Mat image){
       }
       endImage = endImage;
    }
-   else {
-	Mat temp;
-	Scalar lowRange;
-	Scalar highRange;
-	
-    int colorspaceCode = CV_BGR2YUV;
-	
-	switch (colorspaceCode){
-	  case CV_BGR2HSV:
-	      lowRange = Scalar(0,25,40);
-	      highRange = Scalar(255,255,255);  break;
-	  case CV_BGR2HLS:
-	      lowRange = Scalar(0,40,10); //Scalar(0, 40, 10); 
-	      highRange = Scalar(255,220,255); break;//Scalar(255,200,255);  break;
-	  case CV_BGR2YUV:
-          lowRange = Scalar(40,0,0);
-          highRange = Scalar(215,255,255);  break;
-	  case CV_BGR2Lab:
-	      lowRange = Scalar(25,0,0); highRange = Scalar(230,255,255);  break;
-	default:
-	   break;
-	}
-	
-	Mat mask;
-	Mat cvtimage;
-	cvtColor(endImage, cvtimage, colorspaceCode);
-	inRange(cvtimage, lowRange, highRange, mask);
-	bitwise_not(mask, mask);
-	
-	bitwise_and(endImage, Scalar(0,0,0), endImage, mask);
-	//medianBlur(endImage, endImage, 7);
-   }
    if (dragging && mode==0){
       rectangle(endImage, dragStartL, currentPos, Scalar(0,0,255));
    }

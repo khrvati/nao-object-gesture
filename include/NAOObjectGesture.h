@@ -32,6 +32,7 @@ public:
     AL::ALValue getGestureList();
     AL::ALValue getEventList();
     bool removeEvent(const std::string &name);
+    void removeObjectKind(const int &id);
 private:
     struct Impl;
     boost::shared_ptr<Impl> impl;
