@@ -33,6 +33,7 @@ public:
     AL::ALValue getEventList();
     bool removeEvent(const std::string &name);
     void removeObjectKind(const int &id);
+    void clearEventTraj(const std::string &name);
 private:
     struct Impl;
     boost::shared_ptr<Impl> impl;

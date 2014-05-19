@@ -165,6 +165,7 @@ struct NAOObjectGesture::Impl{
                 motionProxy->setStiffnesses("Head", 0.0);
             }
 
+
             /* manual timestamp from posix_time */
             boost::posix_time::time_duration lastImgTime = boost::get_system_time() - time_t_epoch;
             long timesec = lastImgTime.total_seconds();
@@ -226,8 +227,11 @@ struct NAOObjectGesture::Impl{
                         //newpt.y = objData[3][1];
                         boost::shared_ptr<TrackedObject> obj = objectTracker->objects[id];
                         obj->updateTrajectory(obj->ellipse.center,1.0);
+                        boost::posix_time::ptime time_t_epoch(boost::gregorian::date(1970,1,1));
+                        boost::posix_time::ptime now(boost::posix_time::microsec_clock::local_time());
+                        boost::posix_time::time_duration sinceEpoch = now-time_t_epoch;
 
-                        eventTrajectories[j].append(objectTracker->objects[id]->ellipse.center, 1);
+                        eventTrajectories[j].append(objectTracker->objects[id]->ellipse.center, sinceEpoch.total_milliseconds());
                     }
                     //objectTracker->objects[id]->updateTrajectory(newpt, 1);
                 }
@@ -318,7 +322,7 @@ struct NAOObjectGesture::Impl{
         for (int i=0; i<eventNames.size(); i++){
             if (name.compare(eventNames[i])==0){
                 nameFound = true;
-                i=nameIdx;
+                nameIdx=i;
                 break;
             }
         }
@@ -328,7 +332,6 @@ struct NAOObjectGesture::Impl{
             return false;
         }
         else {
-
             AL::ALValue lastData;
             lastData.arrayPush(0);
             AL::ALValue gesturesRecognized;
@@ -387,6 +390,10 @@ NAOObjectGesture::NAOObjectGesture(boost::shared_ptr<AL::ALBroker> pBroker, cons
     addParam("objId", "Identifier of object to be tracked");
     setReturn("eventAdded", "Boolean value. Returns true if event was added or already exists, false otherwise");
     BIND_METHOD(NAOObjectGesture::trackObject);
+
+    functionName("clearEventTraj", getName(), "Clear the trajectory of object tracked under event");
+    addParam("name", "Microevent name");
+    BIND_METHOD(NAOObjectGesture::clearEventTraj);
 
     functionName("getEventList", getName(), "Get list of all events this module raises with corresponding object ids");
     setReturn("eventList", "List of all events. Each event is in [name, objectid] format");
@@ -502,9 +509,14 @@ void NAOObjectGesture::loadDataset(const std::string& dataFolder){
                 }
             }
             impl->objTrackerLock.lock();
-            impl->objectTracker->addObjectKind(images, masks);
+            bool cond = impl->objectTracker->addObjectKind(images, masks, rootDir.string());
             impl->objTrackerLock.unlock();
-            qiLogInfo("NAOObjectGesture") << "Loaded " << images.size() << " images" << std::endl;
+            if (cond){
+                qiLogInfo("NAOObjectGesture") << "Loaded " << images.size() << " images" << std::endl;
+            }
+            else {
+                qiLogError("NAOObjectGesture") << "Failed to load dataset" << std::endl;
+            }
         } catch (std::exception &e){
             qiLogError("NAOObjectGesture") << "Failed to load dataset images: " << e.what() << std::endl;
             exit();
@@ -523,7 +535,6 @@ void NAOObjectGesture::removeObjectKind(const int& id){
         qiLogInfo("NAOObjectGesture") << "Removed object kind " << id << std::endl;
     }
     impl->objTrackerLock.unlock();
-
 }
 
 /**
@@ -627,10 +638,34 @@ bool NAOObjectGesture::trackObject(const string &name, const int &objId){
     impl->eventNames.push_back(name);
     impl->eventObjectIds.push_back(objId);
     Trajectory tempTraj = Trajectory();
+    std::string str;
+    str.append("/home/nao/KrunoHrvatinic/");
+    str.append(name);
+    str.append(".txt");
+    path tp(str);
+    if (exists(tp)){
+        boost::filesystem3::remove(tp);
+    }
+    tempTraj.logTo(tp);
     impl->eventTrajectories.push_back(tempTraj);
+
     impl->objTrackerLock.unlock();
     qiLogInfo("NAOObjectGesture") << "Now tracking object " << objId << " using event " << name << std::endl;
     return true;
+}
+
+void NAOObjectGesture::clearEventTraj(const string &name){
+    impl->objTrackerLock.lock();
+    for (int i=0; i<impl->eventNames.size(); i++){
+        if (name.compare(impl->eventNames[i])==0){
+            impl->eventTrajectories[i].cutoff(-1);
+            qiLogVerbose("NAOObjectGesture") << "Trajectory assigned to event " << name << " cleared" << std::endl;
+            impl->objTrackerLock.unlock();
+            return;
+        }
+    }
+    qiLogError("NAOObjectGesture") << "Attempted to clear trajectory assigned to nonexistent event" << std::endl;
+    impl->objTrackerLock.unlock();
 }
 
 AL::ALValue NAOObjectGesture::getEventList(){

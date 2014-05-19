@@ -30,11 +30,11 @@ protected:
     vector<int> rSimplify(float eps, int start, int stop);
 public:
     vector<cv::Point2f> points;
-    vector<float> times;
+    vector<long long> times;
     Trajectory();
     Trajectory(vector<float> num, vector<float> den);
     void logTo(boost::filesystem::path filename);
-    void append(cv::Point2f pt, float time);
+    void append(cv::Point2f pt, long long time);
     void simplify(float eps);
     void cutoff(int idx);
 };

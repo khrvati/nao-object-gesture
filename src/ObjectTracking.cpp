@@ -63,6 +63,7 @@ void UpdatableHistogram::update(Mat image, double alpha, const Mat mask){
     }
 
     aposteriori = alpha*offline + (1-alpha)*aposteriori;
+    aposteriori.copyTo(normalized);
 }
 
 void UpdatableHistogram::fromImage(const vector<Mat> image, const vector<Mat> mask){
@@ -84,6 +85,33 @@ void UpdatableHistogram::fromImage(const vector<Mat> image, const vector<Mat> ma
     aposteriori.copyTo(normalized);
     aposteriori.copyTo(accumulator);
     makeGMM(3,20,0.001);
+}
+
+void UpdatableHistogram::toImage(std::string rootPath){
+    boost::filesystem::path bPath(rootPath);
+    boost::filesystem::create_directories(bPath);
+    bPath /= "histogram.png";
+    Mat tempMat;
+    offline.convertTo(tempMat, CV_8U, 255.0);
+    imwrite(bPath.string(), tempMat);
+}
+
+bool UpdatableHistogram::fromStored(std::string rootPath){
+    boost::filesystem::path bPath(rootPath);
+    bPath /= "histogram.png";
+    try{
+        if (boost::filesystem::exists(bPath)){
+            Mat tempMat;
+            tempMat = imread(bPath.string(), CV_LOAD_IMAGE_GRAYSCALE);
+            tempMat.convertTo(normalized, CV_32F, 1.0/255.0);
+            normalized.copyTo(offline);
+            normalized.copyTo(accumulator);
+            return true;
+        }
+    } catch (std::exception &e){
+        return false;
+    }
+    return false;
 }
 
 TrackedObject::TrackedObject(){
@@ -280,9 +308,6 @@ void TrackedObject::unOcclude(){
     occluders.clear();
 }
 
-
-
-
 ObjectTracker::ObjectTracker(){    
     frameNumber = 0;
     nextObjectIdx = 1;
@@ -299,32 +324,66 @@ void ObjectTracker::preprocess(const Mat image, Mat& outputImage, Mat& mask){
     procimg.convertTo(outputImage, CV_32F);
 }
 
-void ObjectTracker::addObjectKind(const vector<Mat> image, const vector<Mat> outMask){
-    vector<Mat> procimg;
-    vector<Mat> mask;
-    int numImg = min(image.size(), outMask.size());
-    for(int i=0; i<numImg; i++){
-        Mat temp;
-        Mat tempmask;
-        preprocess(image[i], temp, tempmask);
-        bitwise_and(tempmask, outMask[i], tempmask);
-        procimg.push_back(temp);
-        mask.push_back(tempmask);
+bool ObjectTracker::addObjectKind(const vector<Mat> image, const vector<Mat> outMask){
+    try{
+        vector<Mat> procimg;
+        vector<Mat> mask;
+        int numImg = min(image.size(), outMask.size());
+        for(int i=0; i<numImg; i++){
+            Mat temp;
+            Mat tempmask;
+            preprocess(image[i], temp, tempmask);
+            bitwise_and(tempmask, outMask[i], tempmask);
+            procimg.push_back(temp);
+            mask.push_back(tempmask);
+        }
+        int channels[2] = {1,2};
+        float c1range[2] = {0,256};
+        float c2range[2] = {0,256};
+
+        int histSize[2] = {64,64};
+        UpdatableHistogram objHist(channels, histSize, c1range, c2range, 5);
+        objHist.fromImage(procimg, mask);
+        objectKinds.push_back(objHist);
+        largestObjOfKind.push_back(0);
+    } catch (std::exception &e){
+        return false;
     }
+    return true;
+}
+
+bool ObjectTracker::addObjectKind(std::string path){
     int channels[2] = {1,2};
     float c1range[2] = {0,256};
     float c2range[2] = {0,256};
-
     int histSize[2] = {64,64};
     UpdatableHistogram objHist(channels, histSize, c1range, c2range, 5);
-
-    objHist.fromImage(procimg, mask);
-    objectKinds.push_back(objHist);
-    largestObjOfKind.push_back(0);
-    Mat temp;
-    resize(objectKinds.back().normalized, temp, Size(300,300),0,0, INTER_NEAREST);
-    //objectKinds.back().makeGMM(3,4,0.01);
+    bool cond = objHist.fromStored(path);
+    if (cond){
+        objectKinds.push_back(objHist);
+        largestObjOfKind.push_back(0);
+        return true;
+    }
+    else{
+        return false;
+    }
 }
+
+bool ObjectTracker::addObjectKind(const vector<Mat> image, const vector<Mat> outMask, std::string path){
+    if (!this->addObjectKind(path)){
+        if(this->addObjectKind(image, outMask)){
+            objectKinds.back().toImage(path);
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+    else {
+        return true;
+    }
+}
+
 
 void ObjectTracker::getProbImages(const Mat procimg, const Mat mask, vector<Mat> &outputImages){
     //first, get the general image histogram and use it to get a normalized probability image of the input image

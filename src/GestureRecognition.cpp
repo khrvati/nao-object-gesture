@@ -72,7 +72,7 @@ Trajectory::Trajectory(): filt(){}
 
 Trajectory::Trajectory(vector<float> num, vector<float> den): filt(num, den, 1){}
 
-void Trajectory::append(cv::Point2f pt, float time){
+void Trajectory::append(cv::Point2f pt, long long time){
     cv::Point ret;
     filt.process(pt, ret);
     points.push_back(ret);
@@ -80,12 +80,18 @@ void Trajectory::append(cv::Point2f pt, float time){
     if (!filename.empty()){
         boost::filesystem::ofstream fileStream(filename, ios::out | ios::app);
         fileStream << time << ", " << pt.x << ", " << pt.y << endl;
+        fileStream.close();
     }
 }
 
 void Trajectory::cutoff(int idx){
     if (idx<points.size()-1 && idx>1){
         points.erase(points.begin(), points.begin()+idx-1);
+        times.erase(times.begin(), times.begin()+idx-1);
+    }
+    else {
+        points.clear();
+        times.clear();
     }
 }
 
@@ -96,7 +102,7 @@ void Trajectory::simplify(float eps){
     }
     vector<int> keep = rSimplify(eps ,0, points.size()-1);
     vector<cv::Point2f> newPts;
-    vector<float> newTimes;
+    vector<long long> newTimes;
     for (int i=0; i<keep.size(); i++){
         newPts.push_back(points[keep[i]]);
         newTimes.push_back(times[keep[i]]);
@@ -208,31 +214,32 @@ vector<int> Gesture::existsIn(Trajectory& traj, bool lastPt){
     int startpt = 0;
     int pt0 = 0;
     for (int i=0; i<traj.points.size(); i++){
-            cv::Point ptdiff = traj.points[i]-traj.points[pt0];
-            if (cv::norm(ptdiff)>=minDist){
-                float angle = fmod(atan2(ptdiff.y,-ptdiff.x)+PI,(2*PI));
-                if (!inState(angle, state, angleOverlap)){
-                    if (state==directionList.size()-1){
-                        retval.push_back(startpt);
-                        retval.push_back(i);
-                        state=0;
-                        startpt = i;
-                        pt0 = i;
-                    }
-                    else {
-                        if (inState(angle, state+1, angleOverlap)){
-                            state++;
-                            pt0 = i;
-                        } else {
-                            state = 0;
-                            pt0 = i;
-                            startpt = i;
-                        }
-                    }
-                }
-                else {
+        cv::Point ptdiff = traj.points[i]-traj.points[pt0];
+        long long tdiff = traj.times[i]-traj.times[pt0];
+        if (cv::norm(ptdiff)>=minDist || tdiff>3000){
+            float angle = fmod(atan2(ptdiff.y,-ptdiff.x)+PI,(2*PI));
+            if (!inState(angle, state, angleOverlap)){
+                if (state==directionList.size()-1){
+                    retval.push_back(startpt);
+                    retval.push_back(i);
+                    state=0;
+                    startpt = i;
                     pt0 = i;
                 }
+                else {
+                    if (inState(angle, state+1, angleOverlap)){
+                        state++;
+                        pt0 = i;
+                    } else {
+                        state = 0;
+                        pt0 = i;
+                        startpt = i;
+                    }
+                }
+            }
+            else {
+                pt0 = i;
+            }
         }
     }
     if (lastPt && state == (directionList.size()-1)){

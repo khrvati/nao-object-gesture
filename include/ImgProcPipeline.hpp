@@ -79,7 +79,7 @@ class ColorHistBackProject : public ProcessingElement{
 	ColorHistBackProject(int code, const int* histogramSize, String filename);
 	virtual void histFromImage(const Mat image);	
 	void updateHistogram(const Mat image, const Mat mask);
-	virtual void process(const Mat inputImage, Mat* outputImage);
+    virtual void process(const Mat inputImage, Mat* outputImage);
 };
 
 class BayesColorHistBackProject : public ColorHistBackProject{
@@ -87,7 +87,7 @@ class BayesColorHistBackProject : public ColorHistBackProject{
 	void histFromImage(const Mat image);
 	void process(const Mat inputImage, Mat* outputImage);
 	BayesColorHistBackProject(int code, const int* histogramSize) : ColorHistBackProject(code, histogramSize) {};
-	BayesColorHistBackProject(int code, const int* histogramSize, String filename) : ColorHistBackProject(code, histogramSize,filename) {};
+    BayesColorHistBackProject(int code, const int* histogramSize, String filename) : ColorHistBackProject(code, histogramSize,filename) {};
 };
 
 class GMMColorHistBackProject : public ColorHistBackProject{

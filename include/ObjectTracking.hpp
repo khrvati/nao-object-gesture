@@ -25,6 +25,8 @@ public:
     UpdatableHistogram(int channels[2], int histogramSize[2], float channel1range[2], float channel2range[2], int bufferSize);
     void update(Mat image, double alpha, const Mat mask);
     void fromImage(const vector<Mat> image, const vector<Mat> mask);
+    void toImage(std::string rootPath);
+    bool fromStored(std::string rootPath);
 };
 
 class TrackedObject{
@@ -78,8 +80,9 @@ class ObjectTracker : public ProcessingElement{
     void preprocess(const Mat image, Mat& outputImage, Mat& mask);
     void getProbImages(const Mat procimg, const Mat mask, vector<Mat>& outputImages);
 	void process(const Mat inputImage, Mat* outputImage);
-    void addObjectKind(const vector<Mat> image, const vector<Mat> outMask);
-
+    bool addObjectKind(const vector<Mat> image, const vector<Mat> outMask);
+    bool addObjectKind(const vector<Mat> image, const vector<Mat> outMask, std::string path);
+    bool addObjectKind(std::string path);
 };
 
 bool intersectingOBB(RotatedRect obb1, RotatedRect obb2);
