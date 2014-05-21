@@ -78,13 +78,13 @@ struct NAOObjectGesture::Impl{
             qiLogError("NAOObjectGesture") << "Failed to get a proxy to ALMemory" << std::endl;
             throw std::runtime_error("Failed to get a proxy to ALMemory");
         }
-        if (!camProxy){
-            qiLogError("NAOObjectGesture") << "Failed to get a proxy to ALVideoDevice" << std::endl;
-            throw std::runtime_error("Failed to get a proxy to ALVideoDevice");
-        }
         if (!motionProxy){
             qiLogError("NAOObjectGesture") << "Failed to get a proxy to ALMotion" << std::endl;
             throw std::runtime_error("Failed to get a proxy to ALMotion");
+        }
+        if (!camProxy){
+            qiLogError("NAOObjectGesture") << "Failed to get a proxy to ALVideoDevice" << std::endl;
+            throw std::runtime_error("Failed to get a proxy to ALVideoDevice");
         }
     }
 
@@ -105,6 +105,11 @@ struct NAOObjectGesture::Impl{
         stopThreadCopy = stopThread;
         stopThreadLock.unlock();
         camProxyName = camProxy->subscribeCamera("NAOObjectGesture", camIdx, RESOLUTION, COLORSPACE, FPS);
+        camProxy->setParam(3, 40);
+        camProxy->setParam(11, 1);
+        camProxy->setParam(22, 2);
+        camProxy->setParam(12, 0);
+        camProxy->setParam(33, -36);
         switch (RESOLUTION){
             case AL::kQQVGA: imsize = Size(160,120); break;
             case AL::kQVGA: imsize = Size(320,240); break;
@@ -154,7 +159,18 @@ struct NAOObjectGesture::Impl{
                 objMap::iterator it = objectTracker->objects.find(tFocusObject);
                 if (it != objectTracker->objects.end()){
                     AL::ALValue newAngles = pt2headAngles(it->second->ellipse.center);
-                    motionProxy->setAngles("Head", newAngles, 0.1);
+                    AL::ALValue currentAngles = motionProxy->getAngles("Head", true);
+                    bool moveNow = false;
+                    for (int i=0; i<newAngles.getSize(); i++){
+                        float a1 = newAngles[i];
+                        float a2 = currentAngles[i];
+                        if (abs(a1-a2)>0.08){
+                            moveNow = true;
+                        }
+                    }
+                    if(moveNow){
+                        motionProxy->setAngles("Head", newAngles, 0.08);
+                    }
                 }
                 else {
                     qiLogInfo("NAOObjectGesture") << "Lost focus on object " << focusObjectId << std::endl;
@@ -185,6 +201,14 @@ struct NAOObjectGesture::Impl{
                 }
                 else {
                     if (id<0 && (-id) > objectTracker->objectKinds.size()){
+                        boost::filesystem3::path tpath("/home/nao/LogTrajectory");
+                        std::string tname = eventNames[j];
+                        tname.append(".csv");
+                        tpath/=tname;
+                        if (exists(tpath)){
+                            boost::filesystem3::remove(tpath);
+                        }
+                        eventTrajectories[j].logTo(tpath);
                         memoryProxy->removeMicroEvent(eventNames[j]);
                         eventNames.erase(eventNames.begin()+j);
                         eventObjectIds.erase(eventObjectIds.begin()+j);
@@ -206,11 +230,18 @@ struct NAOObjectGesture::Impl{
                         }
                     }
                     lastData.arrayPush(gesturesRecognized);
-                    eventTrajectories[j] = Trajectory();
                     memoryProxy->raiseMicroEvent(eventNames[j], lastData);
 
                     if (eventObjectIds[j]>0){
                         qiLogInfo("NAOObjectGesture") << "Object " << eventObjectIds[j] << " permanently lost. Notifying subscribers and deleting event " << eventNames[j] << std::endl;
+                        boost::filesystem3::path tpath("/home/nao/LogTrajectory");
+                        std::string tname = eventNames[j];
+                        tname.append(".csv");
+                        tpath/=tname;
+                        if (exists(tpath)){
+                            boost::filesystem3::remove(tpath);
+                        }
+                        eventTrajectories[j].logTo(tpath);
                         memoryProxy->removeMicroEvent(eventNames[j]);
                         eventNames.erase(eventNames.begin()+j);
                         eventObjectIds.erase(eventObjectIds.begin()+j);
@@ -222,16 +253,19 @@ struct NAOObjectGesture::Impl{
                 else {
                     if (id!=0){
                         memoryProxy->raiseMicroEvent(eventNames[j], objData);
-                        //cv::Point2f newpt(0.0,0.0);
-                        //newpt.x = objData[3][0];
-                        //newpt.y = objData[3][1];
+                        cv::Point2f newpt(0.0,0.0);
+                        newpt.x = objData[3][0];
+                        newpt.y = objData[3][1];
                         boost::shared_ptr<TrackedObject> obj = objectTracker->objects[id];
-                        obj->updateTrajectory(obj->ellipse.center,1.0);
                         boost::posix_time::ptime time_t_epoch(boost::gregorian::date(1970,1,1));
                         boost::posix_time::ptime now(boost::posix_time::microsec_clock::local_time());
                         boost::posix_time::time_duration sinceEpoch = now-time_t_epoch;
 
-                        eventTrajectories[j].append(objectTracker->objects[id]->ellipse.center, sinceEpoch.total_milliseconds());
+                        //eventTrajectories[j].append(obj->ellipse.center, sinceEpoch.total_milliseconds());
+                        //obj->updateTrajectory(obj->ellipse.center,sinceEpoch.total_milliseconds());
+
+                        eventTrajectories[j].append(newpt, sinceEpoch.total_milliseconds());
+                        obj->updateTrajectory(newpt,sinceEpoch.total_milliseconds());
                     }
                     //objectTracker->objects[id]->updateTrajectory(newpt, 1);
                 }
@@ -342,6 +376,15 @@ struct NAOObjectGesture::Impl{
                 }
             }
             lastData.arrayPush(gesturesRecognized);
+
+            boost::filesystem3::path tpath("/home/nao/LogTrajectory");
+            std::string tname = eventNames[nameIdx];
+            tname.append(".csv");
+            tpath/=tname;
+            if (exists(tpath)){
+                boost::filesystem3::remove(tpath);
+            }
+            eventTrajectories[nameIdx].logTo(tpath);
             memoryProxy->raiseMicroEvent(eventNames[nameIdx], lastData);
             memoryProxy->removeMicroEvent(eventNames[nameIdx]);
             eventNames.erase(eventNames.begin()+nameIdx);
@@ -486,6 +529,13 @@ void NAOObjectGesture::loadDataset(const std::string& dataFolder){
     qiLogInfo("NAOObjectGesture") << "Attempting to load dataset in " << dataFolder << std::endl;
     if (!exists(rootDir) || !is_directory(rootDir)){
         qiLogError("NAOObjectGesture") << "Failed to load dataset: Bad directory "<< dataFolder << std::endl;
+    }
+    impl->objTrackerLock.lock();
+    bool cond = impl->objectTracker->addObjectKind(rootDir.string());
+    impl->objTrackerLock.unlock();
+    if (cond){
+        qiLogInfo("NAOObjectGesture") << "Loaded histogram from .png in " << dataFolder << std::endl;
+        return;
     }
     path dataDir = rootDir / "Dataset";
     path gTruthDir = rootDir / "GroundTruth";
@@ -637,16 +687,9 @@ bool NAOObjectGesture::trackObject(const string &name, const int &objId){
     }
     impl->eventNames.push_back(name);
     impl->eventObjectIds.push_back(objId);
-    Trajectory tempTraj = Trajectory();
-    std::string str;
-    str.append("/home/nao/KrunoHrvatinic/");
-    str.append(name);
-    str.append(".txt");
-    path tp(str);
-    if (exists(tp)){
-        boost::filesystem3::remove(tp);
-    }
-    tempTraj.logTo(tp);
+    vector<float> num = {0.15, 0};
+    vector<float> den = {1,-0.85};
+    Trajectory tempTraj = Trajectory(num, den);
     impl->eventTrajectories.push_back(tempTraj);
 
     impl->objTrackerLock.unlock();

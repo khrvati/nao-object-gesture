@@ -12,21 +12,20 @@ using namespace std;
 
 class LTIFilter{
 protected:
-    vector<cv::Point> out;
-    vector<cv::Point> in;
+    vector<cv::Point2f> out;
+    vector<cv::Point2f> in;
     vector<float> numerator;
     vector<float> denominator;
     float discretizationTime;
 public:
     LTIFilter();
     LTIFilter(vector<float> num, vector<float> den, float T);
-    void process(cv::Point input, cv::Point& output);
+    void process(cv::Point2f input, cv::Point2f& output);
 };
 
 class Trajectory{
 protected:
     LTIFilter filt;
-    boost::filesystem::path filename;
     vector<int> rSimplify(float eps, int start, int stop);
 public:
     vector<cv::Point2f> points;

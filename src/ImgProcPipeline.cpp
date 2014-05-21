@@ -375,10 +375,10 @@ void GaussianMixtureModel::fromHistogram(const Mat histogram, int histSize[2], f
     Mat samples;
     for (int i=0; i<histSize[0]; i++){
 	for (int j=0; j<histSize[1]; j++){
-	    if (histogram.at<double>(i,j)>0){
-		double xarr[] = {dim1start+i*dim1step, dim2start+j*dim2step, histogram.at<double>(i,j)};
-		Mat x(1,3,CV_64F, xarr);
-		samples.push_back(x);
+        if (histogram.at<double>(i,j)>0){
+        double xarr[] = {dim1start+i*dim1step, dim2start+j*dim2step, histogram.at<double>(i,j)};
+        Mat x(1,3,CV_64F, xarr);
+        samples.push_back(x);
 	    }
 	}
     }

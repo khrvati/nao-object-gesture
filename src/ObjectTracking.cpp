@@ -35,6 +35,14 @@ void UpdatableHistogram::update(Mat image, double alpha, const Mat mask){
     Mat colorHist;
     calcHist(&image, 1, channels, mask, colorHist, 2, histSize, ranges, true, false);
 
+    double minVal = 0;
+    double maxVal = 0;
+    minMaxLoc(colorHist, &minVal, &maxVal);
+
+    if (minVal==maxVal){
+        return;
+    }
+
     Mat apriori;
     calcHist(&image, 1, channels, Mat(), apriori, 2, histSize, ranges, true, false);
 
@@ -43,6 +51,7 @@ void UpdatableHistogram::update(Mat image, double alpha, const Mat mask){
 
     Mat aposteriori = colorHist/apriori;
 
+
     if(buffer.size()>=buffersize){
         buffer.erase(buffer.begin());
     }
@@ -50,8 +59,6 @@ void UpdatableHistogram::update(Mat image, double alpha, const Mat mask){
 
     int full = 1;
     for (int i=0; i<buffer.size()-1; i++){
-        double minVal = 0;
-        double maxVal = 0;
         minMaxLoc(buffer[i], &minVal, &maxVal);
         if (maxVal>1e-6){
             aposteriori+=buffer[i];
@@ -85,6 +92,7 @@ void UpdatableHistogram::fromImage(const vector<Mat> image, const vector<Mat> ma
     aposteriori.copyTo(normalized);
     aposteriori.copyTo(accumulator);
     makeGMM(3,20,0.001);
+    normalized.copyTo(offline);
 }
 
 void UpdatableHistogram::toImage(std::string rootPath){
@@ -118,7 +126,7 @@ TrackedObject::TrackedObject(){
     tracked = false;
 }
 
-TrackedObject::TrackedObject(const Mat image, const vector<Point> inContour, bool isContour = false){
+TrackedObject::TrackedObject(const Mat image, const vector<Point> inContour, bool isContour = false): traj({0.3, 0.0},{1.0, -0.7}){
     if (inContour.size()<5) {tracked = false; return;}
     tracked = true;
     imageSize = image.size();
@@ -188,7 +196,7 @@ void TrackedObject::update(const Mat image, const vector<Point> inContour, bool 
     ellipse = newEllipse;
 }
 
-void TrackedObject::updateTrajectory(Point2f pt, float time){
+void TrackedObject::updateTrajectory(Point2f pt, long long time){
     traj.append(pt, time);
 }
 
@@ -427,7 +435,7 @@ void ObjectTracker::process(const Mat inputImage, Mat* outputImage){
         Mat temp;
         vector<vector<Point2i>> tempBlobs;
         hysteresisThreshold(probImages[i], temp, tempBlobs, 0.3, 0.7);
-        objectKinds[i].update(procimg, 0.8, temp);
+        objectKinds[i].update(procimg, 0.3, temp);
         for (int j=0; j<tempBlobs.size(); j++){
             blobs.push_back(tempBlobs[j]);
             blobKinds.push_back(i);
@@ -583,7 +591,11 @@ void ObjectTracker::process(const Mat inputImage, Mat* outputImage){
         if (blobsobject[i]!=-1){
             objects[objKeys[i]]->update(inputImage, blobsForObjects[i]);
             if (VISUALDEBUG){
-                objects[objKeys[i]]->updateTrajectory(objects[objKeys[i]]->ellipse.center,1);
+                boost::posix_time::ptime time_t_epoch(boost::gregorian::date(1970,1,1));
+                boost::posix_time::ptime now(boost::posix_time::microsec_clock::local_time());
+                boost::posix_time::time_duration sinceEpoch = now-time_t_epoch;
+                long long tsep = sinceEpoch.total_milliseconds();
+                objects[objKeys[i]]->updateTrajectory(objects[objKeys[i]]->ellipse.center, tsep);
             }
         }
     }
@@ -627,7 +639,7 @@ void ObjectTracker::process(const Mat inputImage, Mat* outputImage){
                 putText(drawImg, id, shifted, FONT_HERSHEY_SIMPLEX, 0.7, obj->color, 2);
                 if (true) {
                     //obj->traj.simplify(10);
-                    Gesture updown({2,1,0,7,6});
+                    Gesture updown({1,0,7});
                     vector<int> segments = updown.existsInDebug(obj->traj, false);
                     if (segments.size()>0){
                         for (int j=0; j<segments.size(); j+=2){

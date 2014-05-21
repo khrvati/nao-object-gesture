@@ -61,7 +61,7 @@ class TrackedObject{
         RotatedRect useCamShift(const Mat probImage);
         double compare(boost::shared_ptr<TrackedObject> otherObject);
         void unOcclude();
-        void updateTrajectory(Point2f pt, float time);
+        void updateTrajectory(Point2f pt, long long time);
 };
 
 typedef map<int,boost::shared_ptr<TrackedObject> > objMap;

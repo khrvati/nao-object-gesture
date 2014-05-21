@@ -37,19 +37,19 @@ LTIFilter::LTIFilter(vector<float> num, vector<float> den, float T){
         }
         discretizationTime = T;
         for (int i=0; i<denominator.size(); i++){
-            in.push_back(cv::Point(0,0));
-            out.push_back(cv::Point(0,0));
+            in.push_back(cv::Point2f(0,0));
+            out.push_back(cv::Point2f(0,0));
         }
     }
 }
 
-void LTIFilter::process(cv::Point input, cv::Point &output){
+void LTIFilter::process(cv::Point2f input, cv::Point2f &output){
     if (numerator.size()==1 && denominator.size()==1){
         output = input;
         return;
     }
-    cv::Point temp;
-    vector<cv::Point>::iterator it;
+    cv::Point2f temp;
+    vector<cv::Point2f>::iterator it;
     in.push_back(input);
     for(int i=numerator.size()-1; i>=0; i--){
         temp+=in[numerator.size()-i-1]*numerator[i];
@@ -70,18 +70,15 @@ void LTIFilter::process(cv::Point input, cv::Point &output){
 
 Trajectory::Trajectory(): filt(){}
 
-Trajectory::Trajectory(vector<float> num, vector<float> den): filt(num, den, 1){}
+Trajectory::Trajectory(vector<float> num, vector<float> den){
+    filt = LTIFilter(num, den, 1);
+}
 
 void Trajectory::append(cv::Point2f pt, long long time){
-    cv::Point ret;
+    cv::Point2f ret;
     filt.process(pt, ret);
     points.push_back(ret);
     times.push_back(time);
-    if (!filename.empty()){
-        boost::filesystem::ofstream fileStream(filename, ios::out | ios::app);
-        fileStream << time << ", " << pt.x << ", " << pt.y << endl;
-        fileStream.close();
-    }
 }
 
 void Trajectory::cutoff(int idx){
@@ -144,7 +141,14 @@ vector<int> Trajectory::rSimplify(float eps, int start, int stop){
 }
 
 void Trajectory::logTo(boost::filesystem::path filePath){
-    filename = filePath;
+    if (!filePath.empty()){
+        boost::filesystem3::create_directories(filePath.parent_path());
+        boost::filesystem::ofstream fileStream(filePath, ios::out | ios::app);
+        for (int i=0; i<points.size(); i++){
+            fileStream << times[i] << ", " << points[i].x << ", " << points[i].y << endl;
+        }
+        fileStream.close();
+    }
 }
 
 
@@ -203,7 +207,8 @@ vector<int> Gesture::existsIn(Trajectory& traj, bool lastPt){
 */
 
 vector<int> Gesture::existsIn(Trajectory& traj, bool lastPt){
-    float minDist = 10;
+    float minDist = 0.13;
+    long long timeMs = 1500;
     float angleOverlap = 5.0/180*PI;
     vector<int> retval;
     if (traj.points.size()<3 || directionList.size()<1){
@@ -216,9 +221,9 @@ vector<int> Gesture::existsIn(Trajectory& traj, bool lastPt){
     for (int i=0; i<traj.points.size(); i++){
         cv::Point ptdiff = traj.points[i]-traj.points[pt0];
         long long tdiff = traj.times[i]-traj.times[pt0];
-        if (cv::norm(ptdiff)>=minDist || tdiff>3000){
-            float angle = fmod(atan2(ptdiff.y,-ptdiff.x)+PI,(2*PI));
-            if (!inState(angle, state, angleOverlap)){
+        if (cv::norm(ptdiff)>=minDist || tdiff>timeMs){
+            float angle = fmod(atan2(-ptdiff.y,ptdiff.x)+PI,(2*PI));
+            if (!inState(angle, state, angleOverlap) || tdiff>timeMs){
                 if (state==directionList.size()-1){
                     retval.push_back(startpt);
                     retval.push_back(i);
@@ -227,7 +232,7 @@ vector<int> Gesture::existsIn(Trajectory& traj, bool lastPt){
                     pt0 = i;
                 }
                 else {
-                    if (inState(angle, state+1, angleOverlap)){
+                    if (inState(angle, state+1, angleOverlap) && tdiff<=timeMs){
                         state++;
                         pt0 = i;
                     } else {
@@ -251,7 +256,8 @@ vector<int> Gesture::existsIn(Trajectory& traj, bool lastPt){
 
 
 vector<int> Gesture::existsInDebug(Trajectory& traj, bool lastPt){
-    float minDist = 30;
+    float minDist = 20;
+    long long timeMs = 1000;
     float angleOverlap = 5.0/180*PI;
     vector<int> retval;
     if (traj.points.size()<3 || directionList.size()<1){
@@ -264,9 +270,10 @@ vector<int> Gesture::existsInDebug(Trajectory& traj, bool lastPt){
     bool validSeg = false;
     for (int i=0; i<traj.points.size(); i++){
             cv::Point ptdiff = traj.points[i]-traj.points[pt0];
-            if (cv::norm(ptdiff)>=minDist){
+            long long tdiff = traj.times[i]-traj.times[pt0];
+            if (cv::norm(ptdiff)>=minDist || tdiff>timeMs){
                 float angle = fmod(atan2(ptdiff.y,-ptdiff.x)+PI,(2*PI));
-                if (!inState(angle, state, angleOverlap)){
+                if (!inState(angle, state, angleOverlap) || tdiff>timeMs){
                     if (state==directionList.size()-1){
                         retval.push_back(i);
                         retval.push_back(1);
@@ -275,7 +282,7 @@ vector<int> Gesture::existsInDebug(Trajectory& traj, bool lastPt){
                         pt0 = i;
                     }
                     else {
-                        if (inState(angle, state+1, angleOverlap)){
+                        if (inState(angle, state+1, angleOverlap) && tdiff<=timeMs){
                             retval.push_back(i);
                             retval.push_back(1);
                             state++;
