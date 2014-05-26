@@ -29,6 +29,7 @@ protected:
     vector<int> rSimplify(float eps, int start, int stop);
 public:
     vector<cv::Point2f> points;
+    vector<cv::Point2f> rawPoints;
     vector<long long> times;
     Trajectory();
     Trajectory(vector<float> num, vector<float> den);

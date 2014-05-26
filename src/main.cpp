@@ -11,6 +11,8 @@
 #include "boost/filesystem.hpp"
 #include "boost/filesystem/fstream.hpp"
 #include "boost/filesystem/path.hpp"
+#include "boost/property_tree/ptree.hpp"
+#include "boost/property_tree/ini_parser.hpp"
 #include "ImgProcPipeline.hpp"
 #include "DisplayWindow.hpp"
 #include "ObjectTracking.hpp"
@@ -27,8 +29,25 @@ using namespace boost::filesystem;
 
 int main(void)
 {
+    std::string ip = "169.254.89.225";
+    int port = 9559;
+    std::string objname = "Cup";
+    try{
+        boost::property_tree::ptree pt;
+        boost::property_tree::ini_parser::read_ini("Rene.ini", pt);
+        ip = pt.get<string>("Grab settings.IP");
+        port = pt.get<int>("Grab settings.PORT");
+        objname = pt.get<string>("Grab settings.Object_name");
+    } catch (std::exception &e){
+        ip = "169.254.89.225";
+        port = 9559;
+        objname = "Cup";
+    }
+
+    std::string rDir = "/home/kruno/trainingData/skin";
+    //ImgSequence camera(rDir);
     ConnectedCamera camera(1);
-    //NAOCamera camera("169.254.89.225",9559);
+    //NAOCamera camera(ip, port);
     ImageAcquisition* capture = &camera;
     Mat frame;
     
@@ -68,8 +87,9 @@ int main(void)
     generalPtr = static_cast<ProcessingElement*>(&objtrack);
     pipeline.push_back(generalPtr);
 
-    path dataDir("/home/kruno/trainingData2/nCup/Dataset");
-    path gTruthDir("/home/kruno/trainingData2/nCup/GroundTruth");
+    path rootdir(rDir);
+    path dataDir = rootdir/"Dataset";
+    path gTruthDir = rootdir/"GroundTruth";
     vector<Mat> images;
     vector<Mat> masks;
     if (exists(dataDir) && exists(gTruthDir) && is_directory(dataDir) && is_directory(gTruthDir)){

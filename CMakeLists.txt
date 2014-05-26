@@ -14,7 +14,7 @@ option(TRACKER_IS_REMOTE
 
 option(TESTMODE
     "Program is compiled for testing with visual output to screen "
-    OFF)
+    ON)
 if(TESTMODE)
     ADD_DEFINITIONS("-DTESTMODE")
 endif()
@@ -46,7 +46,7 @@ if(TESTMODE)
     qi_stage_lib(DisplayWindow)
 
     qi_create_lib(ImageAcquisition STATIC SRC include/ImageAcquisition.h src/ImageAcquisition.cpp)
-    qi_use_lib(ImageAcquisition OPENCV2_CORE OPENCV2_HIGHGUI ALCOMMON ALVISION ALPROXIES)
+    qi_use_lib(ImageAcquisition BOOST BOOST_FILESYSTEM OPENCV2_CORE OPENCV2_HIGHGUI OPENCV2_IMGPROC ALCOMMON ALVISION ALPROXIES)
     qi_stage_lib(ImageAcquisition)
 
     if(USENAOCAMERA)

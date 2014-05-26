@@ -77,6 +77,7 @@ Trajectory::Trajectory(vector<float> num, vector<float> den){
 void Trajectory::append(cv::Point2f pt, long long time){
     cv::Point2f ret;
     filt.process(pt, ret);
+    rawPoints.push_back(pt);
     points.push_back(ret);
     times.push_back(time);
 }
@@ -84,10 +85,12 @@ void Trajectory::append(cv::Point2f pt, long long time){
 void Trajectory::cutoff(int idx){
     if (idx<points.size()-1 && idx>1){
         points.erase(points.begin(), points.begin()+idx-1);
+        rawPoints.erase(rawPoints.begin(), rawPoints.begin()+idx-1);
         times.erase(times.begin(), times.begin()+idx-1);
     }
     else {
         points.clear();
+        rawPoints.clear();
         times.clear();
     }
 }
@@ -145,7 +148,7 @@ void Trajectory::logTo(boost::filesystem::path filePath){
         boost::filesystem3::create_directories(filePath.parent_path());
         boost::filesystem::ofstream fileStream(filePath, ios::out | ios::app);
         for (int i=0; i<points.size(); i++){
-            fileStream << times[i] << ", " << points[i].x << ", " << points[i].y << endl;
+            fileStream << times[i] << ", " << points[i].x << ", " << points[i].y << ", " << rawPoints[i].x << ", " << rawPoints[i].y << endl;
         }
         fileStream.close();
     }
@@ -207,7 +210,7 @@ vector<int> Gesture::existsIn(Trajectory& traj, bool lastPt){
 */
 
 vector<int> Gesture::existsIn(Trajectory& traj, bool lastPt){
-    float minDist = 0.13;
+    float minDist = 0.05;
     long long timeMs = 1500;
     float angleOverlap = 5.0/180*PI;
     vector<int> retval;

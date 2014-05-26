@@ -104,12 +104,12 @@ struct NAOObjectGesture::Impl{
         stopThreadLock.lock();
         stopThreadCopy = stopThread;
         stopThreadLock.unlock();
-        camProxyName = camProxy->subscribeCamera("NAOObjectGesture", camIdx, RESOLUTION, COLORSPACE, FPS);
+        camProxyName = camProxy->subscribeCamera("NAOObjectGesture", camIdx, RESOLUTION, COLORSPACE, FPS);/*
         camProxy->setParam(3, 40);
         camProxy->setParam(11, 1);
         camProxy->setParam(22, 2);
         camProxy->setParam(12, 0);
-        camProxy->setParam(33, -36);
+        camProxy->setParam(33, -36);*/
         switch (RESOLUTION){
             case AL::kQQVGA: imsize = Size(160,120); break;
             case AL::kQVGA: imsize = Size(320,240); break;
@@ -203,6 +203,13 @@ struct NAOObjectGesture::Impl{
                     if (id<0 && (-id) > objectTracker->objectKinds.size()){
                         boost::filesystem3::path tpath("/home/nao/LogTrajectory");
                         std::string tname = eventNames[j];
+                        time_t rawtime;
+                        struct tm * timeinfo;
+                        char buffer [80];
+                        time (&rawtime);
+                        timeinfo = localtime (&rawtime);
+                        strftime(buffer, 80, "%F_%H-%M-%S", timeinfo);
+                        tname.append(buffer);
                         tname.append(".csv");
                         tpath/=tname;
                         if (exists(tpath)){
@@ -236,6 +243,13 @@ struct NAOObjectGesture::Impl{
                         qiLogInfo("NAOObjectGesture") << "Object " << eventObjectIds[j] << " permanently lost. Notifying subscribers and deleting event " << eventNames[j] << std::endl;
                         boost::filesystem3::path tpath("/home/nao/LogTrajectory");
                         std::string tname = eventNames[j];
+                        time_t rawtime;
+                        struct tm * timeinfo;
+                        char buffer [80];
+                        time (&rawtime);
+                        timeinfo = localtime (&rawtime);
+                        strftime(buffer, 80, "%F_%H-%M-%S", timeinfo);
+                        tname.append(buffer);
                         tname.append(".csv");
                         tpath/=tname;
                         if (exists(tpath)){
@@ -379,6 +393,13 @@ struct NAOObjectGesture::Impl{
 
             boost::filesystem3::path tpath("/home/nao/LogTrajectory");
             std::string tname = eventNames[nameIdx];
+            time_t rawtime;
+            struct tm * timeinfo;
+            char buffer [80];
+            time (&rawtime);
+            timeinfo = localtime (&rawtime);
+            strftime(buffer, 80, "%F_%H-%M-%S", timeinfo);
+            tname.append(buffer);
             tname.append(".csv");
             tpath/=tname;
             if (exists(tpath)){
@@ -687,8 +708,8 @@ bool NAOObjectGesture::trackObject(const string &name, const int &objId){
     }
     impl->eventNames.push_back(name);
     impl->eventObjectIds.push_back(objId);
-    vector<float> num = {0.15, 0};
-    vector<float> den = {1,-0.85};
+    vector<float> num = {0.3, 0};
+    vector<float> den = {1,-0.7};
     Trajectory tempTraj = Trajectory(num, den);
     impl->eventTrajectories.push_back(tempTraj);
 
