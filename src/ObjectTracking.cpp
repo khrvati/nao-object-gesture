@@ -192,6 +192,8 @@ void TrackedObject::update(const Mat image, const vector<Point> inContour, bool 
     RotatedRect newEllipse = getEllipse(); //minAreaRect(inContour);
     estMove = newEllipse.center-actualEllipse.center;
     actualEllipse = newEllipse;
+    estMove.x /= 2.0;
+    estMove.y /= 2.0;
     newEllipse.center += estMove;
     ellipse = newEllipse;
 }
@@ -296,8 +298,8 @@ RotatedRect TrackedObject::getEllipse(){
     Size stemp;
     float l1 = (mxx+myy+K)/2;
     float l2 = (mxx+myy-K)/2;
-    stemp.width = 2*sqrt(l1)*1.5;
-    stemp.height = 2*sqrt(l2)*1.5;
+    stemp.width = 2*sqrt(l1)*2.0;
+    stemp.height = 2*sqrt(l2)*2.0;
     temp.size = stemp;
     temp.angle = atan2(mxx-l1, -mxy)*180.0f/3.141592653589f;
     return temp;
@@ -639,8 +641,8 @@ void ObjectTracker::process(const Mat inputImage, Mat* outputImage){
                 putText(drawImg, id, shifted, FONT_HERSHEY_SIMPLEX, 0.7, obj->color, 2);
                 if (true) {
                     //obj->traj.simplify(10);
-                    Gesture updown({1,0,7});
-                    vector<int> segments = updown.existsInDebug(obj->traj, false);
+                    Gesture updown("Drink",{1,0,7});
+                    vector<int> segments = updown.existsInDebug(obj->traj, false, 20);
                     if (segments.size()>0){
                         for (int j=0; j<segments.size(); j+=2){
                             Scalar color;

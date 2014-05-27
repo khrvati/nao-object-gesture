@@ -14,7 +14,7 @@ option(TRACKER_IS_REMOTE
 
 option(TESTMODE
     "Program is compiled for testing with visual output to screen "
-    ON)
+    OFF)
 if(TESTMODE)
     ADD_DEFINITIONS("-DTESTMODE")
 endif()

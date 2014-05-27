@@ -36,9 +36,7 @@ struct NAOObjectGesture::Impl{
     NAOObjectGesture &module;
     boost::shared_ptr<AL::ALMemoryProxy> memoryProxy;
     vector<int> imgTimestamp;
-    vector<std::string> eventNames;
-    vector<int> eventObjectIds;
-    vector<Trajectory> eventTrajectories;
+    vector<NAOEvent> events;
 
     boost::shared_ptr<AL::ALVideoDeviceProxy> camProxy;
     std::string camProxyName;
@@ -51,7 +49,6 @@ struct NAOObjectGesture::Impl{
 
     boost::shared_ptr<ObjectTracker> objectTracker;
     boost::mutex objTrackerLock;
-    vector<std::string> gestureNames;
     vector<Gesture> gestures;
 
     boost::mutex fileLock;
@@ -118,12 +115,11 @@ struct NAOObjectGesture::Impl{
         boost::system_time tickTime = boost::get_system_time();
         int ticks = 0;
         boost::posix_time::time_duration thousandFrameTime(boost::posix_time::seconds(0));
+
         while(!stopThreadCopy){
-            //do things
             ticks+=1;
             boost::system_time now = boost::get_system_time();
             objTrackerLock.lock();
-            //get image here
             Mat inputImage;
             try{
                 const AL::ALImage* img = (AL::ALImage*)camProxy->getImageLocal(camProxyName);
@@ -183,6 +179,7 @@ struct NAOObjectGesture::Impl{
 
 
             /* manual timestamp from posix_time */
+
             boost::posix_time::time_duration lastImgTime = boost::get_system_time() - time_t_epoch;
             long timesec = lastImgTime.total_seconds();
             boost::posix_time::time_duration millis = lastImgTime - boost::posix_time::seconds(timesec);
@@ -190,98 +187,41 @@ struct NAOObjectGesture::Impl{
             imgTimestamp.clear();
             imgTimestamp.push_back(timesec);
             imgTimestamp.push_back(timemillis);
-            //this is time since epoch
+            //this is time since epoch in compatible values
 
-            int numObj = objectTracker->objects.size();
-
-            for (int j=0; j<eventObjectIds.size(); j++){
-                int id = eventObjectIds[j];
-                if (id<0 && (-id)<= objectTracker->objectKinds.size()){
-                    id = objectTracker->largestObjOfKind[(-eventObjectIds[j])-1];
+            for (int j=0; j<events.size(); j++){
+                int id = events[j].objectId;
+                bool trackingLargest = false;
+                if ((-id) > objectTracker->objectKinds.size()){
+                    //if tracking nonexistent kind (simplified)
+                    events[j].log(gestures);
+                    memoryProxy->removeMicroEvent(events[j].name);
+                    events.erase(events.begin()+j);
+                    j--;
+                    continue;
+                }
+                if (id<0 && (-id) <= objectTracker->objectKinds.size()){
+                    id = objectTracker->largestObjOfKind[(-events[j].objectId)-1];
+                    trackingLargest = true;
+                }
+                objMap::iterator it = objectTracker->objects.find(id);
+                if (it != objectTracker->objects.end()){
+                    boost::shared_ptr<TrackedObject> obj = it->second;
+                    AL::ALValue objData = getObjDataInternal(id,15);
+                    events[j].notify(memoryProxy, objData, gestures);
                 }
                 else {
-                    if (id<0 && (-id) > objectTracker->objectKinds.size()){
-                        boost::filesystem3::path tpath("/home/nao/LogTrajectory");
-                        std::string tname = eventNames[j];
-                        time_t rawtime;
-                        struct tm * timeinfo;
-                        char buffer [80];
-                        time (&rawtime);
-                        timeinfo = localtime (&rawtime);
-                        strftime(buffer, 80, "%F_%H-%M-%S", timeinfo);
-                        tname.append(buffer);
-                        tname.append(".csv");
-                        tpath/=tname;
-                        if (exists(tpath)){
-                            boost::filesystem3::remove(tpath);
-                        }
-                        eventTrajectories[j].logTo(tpath);
-                        memoryProxy->removeMicroEvent(eventNames[j]);
-                        eventNames.erase(eventNames.begin()+j);
-                        eventObjectIds.erase(eventObjectIds.begin()+j);
-                        eventTrajectories.erase(eventTrajectories.begin()+j);
+                    if (!trackingLargest){
+                        events[j].deadNotify(memoryProxy, gestures);
+                        memoryProxy->removeMicroEvent(events[j].name);
+                        events.erase(events.begin()+j);
                         j--;
                         continue;
                     }
-                }
-                AL::ALValue objData = getObjDataInternal(id,31);
-
-                if (objData.getSize() == 0 && eventTrajectories[j].points.size()>0){
-                    AL::ALValue lastData;
-                    lastData.arrayPush(0);
-                    AL::ALValue gesturesRecognized;
-                    for (int i=0; i<gestures.size(); i++){
-                        vector<int> gr = gestures[i].existsIn(eventTrajectories[j], true);
-                        if (gr.size()>0){
-                            gesturesRecognized.arrayPush(gestureNames[i]);
-                        }
+                    else {
+                        events[j].deadNotify(memoryProxy, gestures);
+                        events[j].trajectory.cutoff(-1);
                     }
-                    lastData.arrayPush(gesturesRecognized);
-                    memoryProxy->raiseMicroEvent(eventNames[j], lastData);
-
-                    if (eventObjectIds[j]>0){
-                        qiLogInfo("NAOObjectGesture") << "Object " << eventObjectIds[j] << " permanently lost. Notifying subscribers and deleting event " << eventNames[j] << std::endl;
-                        boost::filesystem3::path tpath("/home/nao/LogTrajectory");
-                        std::string tname = eventNames[j];
-                        time_t rawtime;
-                        struct tm * timeinfo;
-                        char buffer [80];
-                        time (&rawtime);
-                        timeinfo = localtime (&rawtime);
-                        strftime(buffer, 80, "%F_%H-%M-%S", timeinfo);
-                        tname.append(buffer);
-                        tname.append(".csv");
-                        tpath/=tname;
-                        if (exists(tpath)){
-                            boost::filesystem3::remove(tpath);
-                        }
-                        eventTrajectories[j].logTo(tpath);
-                        memoryProxy->removeMicroEvent(eventNames[j]);
-                        eventNames.erase(eventNames.begin()+j);
-                        eventObjectIds.erase(eventObjectIds.begin()+j);
-                        eventTrajectories.erase(eventTrajectories.begin()+j);
-                        j--;
-                        continue;
-                    }
-                }
-                else {
-                    if (id!=0){
-                        memoryProxy->raiseMicroEvent(eventNames[j], objData);
-                        cv::Point2f newpt(0.0,0.0);
-                        newpt.x = objData[3][0];
-                        newpt.y = objData[3][1];
-                        boost::shared_ptr<TrackedObject> obj = objectTracker->objects[id];
-                        boost::posix_time::ptime time_t_epoch(boost::gregorian::date(1970,1,1));
-                        boost::posix_time::ptime now(boost::posix_time::microsec_clock::local_time());
-                        boost::posix_time::time_duration sinceEpoch = now-time_t_epoch;
-
-                        //eventTrajectories[j].append(obj->ellipse.center, sinceEpoch.total_milliseconds());
-                        //obj->updateTrajectory(obj->ellipse.center,sinceEpoch.total_milliseconds());
-
-                        eventTrajectories[j].append(newpt, sinceEpoch.total_milliseconds());
-                        obj->updateTrajectory(newpt,sinceEpoch.total_milliseconds());
-                    }
-                    //objectTracker->objects[id]->updateTrajectory(newpt, 1);
                 }
             }
 
@@ -293,11 +233,13 @@ struct NAOObjectGesture::Impl{
             stopThreadLock.lock();
             stopThreadCopy = stopThread;
             stopThreadLock.unlock();
+
+            //framerate display, purely diagnostic
             boost::posix_time::time_duration oneLoop = boost::get_system_time() - now;
             thousandFrameTime += oneLoop;
             if (ticks==100){
                 ticks=0;
-                qiLogInfo("NAOObjectGesture") << "Tracking working at " << 100000.0f/thousandFrameTime.total_milliseconds() << " FPS" << std::endl;
+                qiLogVerbose("NAOObjectGesture") << "Tracking working at " << 100000.0f/thousandFrameTime.total_milliseconds() << " FPS" << std::endl;
                 thousandFrameTime = boost::posix_time::milliseconds(0);
             }
 
@@ -353,7 +295,7 @@ struct NAOObjectGesture::Impl{
                 for (int i=0; i<gestures.size(); i++){
                     vector<int> gr = gestures[i].existsIn(obj->traj, false);
                     if (gr.size()>0){
-                        gesturesRecognized.arrayPush(gestureNames[i]);
+                        gesturesRecognized.arrayPush(gestures[i].name);
                     }
                 }
                 objData.arrayPush(gesturesRecognized);
@@ -367,8 +309,8 @@ struct NAOObjectGesture::Impl{
         objTrackerLock.lock();
         bool nameFound = false;
         int nameIdx = -1;
-        for (int i=0; i<eventNames.size(); i++){
-            if (name.compare(eventNames[i])==0){
+        for (int i=0; i<events.size(); i++){
+            if (name.compare(events[i].name)==0){
                 nameFound = true;
                 nameIdx=i;
                 break;
@@ -380,37 +322,9 @@ struct NAOObjectGesture::Impl{
             return false;
         }
         else {
-            AL::ALValue lastData;
-            lastData.arrayPush(0);
-            AL::ALValue gesturesRecognized;
-            for (int i=0; i<gestures.size(); i++){
-                vector<int> gr = gestures[i].existsIn(eventTrajectories[nameIdx], true);
-                if (gr.size()>0){
-                    gesturesRecognized.arrayPush(gestureNames[i]);
-                }
-            }
-            lastData.arrayPush(gesturesRecognized);
-
-            boost::filesystem3::path tpath("/home/nao/LogTrajectory");
-            std::string tname = eventNames[nameIdx];
-            time_t rawtime;
-            struct tm * timeinfo;
-            char buffer [80];
-            time (&rawtime);
-            timeinfo = localtime (&rawtime);
-            strftime(buffer, 80, "%F_%H-%M-%S", timeinfo);
-            tname.append(buffer);
-            tname.append(".csv");
-            tpath/=tname;
-            if (exists(tpath)){
-                boost::filesystem3::remove(tpath);
-            }
-            eventTrajectories[nameIdx].logTo(tpath);
-            memoryProxy->raiseMicroEvent(eventNames[nameIdx], lastData);
-            memoryProxy->removeMicroEvent(eventNames[nameIdx]);
-            eventNames.erase(eventNames.begin()+nameIdx);
-            eventObjectIds.erase(eventObjectIds.begin()+nameIdx);
-            eventTrajectories.erase(eventTrajectories.begin()+nameIdx);
+            events[nameIdx].deadNotify(memoryProxy, gestures);
+            memoryProxy->removeMicroEvent(events[nameIdx].name);
+            events.erase(events.begin()+nameIdx);
             qiLogInfo("NAOObjectGesture") << "Removed event " << name << std::endl;
         }
         objTrackerLock.unlock();
@@ -646,7 +560,7 @@ AL::ALValue NAOObjectGesture::getObjectList(const int &dataCode){
                 for (int i=0; i<impl->gestures.size(); i++){
                     vector<int> gr = impl->gestures[i].existsIn(obj->traj, false);
                     if (gr.size()>0){
-                        gesturesRecognized.arrayPush(impl->gestureNames[i]);
+                        gesturesRecognized.arrayPush(impl->gestures[i].name);
                     }
                 }
                 objData.arrayPush(gesturesRecognized);
@@ -678,9 +592,9 @@ AL::ALValue NAOObjectGesture::getObjectData(const AL::ALValue& objectIds, const 
 
 bool NAOObjectGesture::trackObject(const string &name, const int &objId){
     impl->objTrackerLock.lock();
-    for (int i=0; i<impl->eventNames.size(); i++){
-        if (name.compare(impl->eventNames[i])==0){
-            if (impl->eventObjectIds[i]==objId){
+    for (int i=0; i<impl->events.size(); i++){
+        if (name.compare(impl->events[i].name)==0){
+            if (impl->events[i].objectId==objId){
                 qiLogInfo("NAOObjectGesture") << "Attempted to create tracking event identical to an existing one." << std::endl;
                 impl->objTrackerLock.unlock();
                 return true;
@@ -706,13 +620,8 @@ bool NAOObjectGesture::trackObject(const string &name, const int &objId){
             return false;
         }
     }
-    impl->eventNames.push_back(name);
-    impl->eventObjectIds.push_back(objId);
-    vector<float> num = {0.3, 0};
-    vector<float> den = {1,-0.7};
-    Trajectory tempTraj = Trajectory(num, den);
-    impl->eventTrajectories.push_back(tempTraj);
-
+    NAOEvent tEvent(name, objId, {0.3, 0.0},{1.0, -0.7});
+    impl->events.push_back(tEvent);
     impl->objTrackerLock.unlock();
     qiLogInfo("NAOObjectGesture") << "Now tracking object " << objId << " using event " << name << std::endl;
     return true;
@@ -720,9 +629,9 @@ bool NAOObjectGesture::trackObject(const string &name, const int &objId){
 
 void NAOObjectGesture::clearEventTraj(const string &name){
     impl->objTrackerLock.lock();
-    for (int i=0; i<impl->eventNames.size(); i++){
-        if (name.compare(impl->eventNames[i])==0){
-            impl->eventTrajectories[i].cutoff(-1);
+    for (int i=0; i<impl->events.size(); i++){
+        if (name.compare(impl->events[i].name)==0){
+            impl->events[i].trajectory.cutoff(-1);
             qiLogVerbose("NAOObjectGesture") << "Trajectory assigned to event " << name << " cleared" << std::endl;
             impl->objTrackerLock.unlock();
             return;
@@ -735,10 +644,10 @@ void NAOObjectGesture::clearEventTraj(const string &name){
 AL::ALValue NAOObjectGesture::getEventList(){
     impl->objTrackerLock.lock();
     AL::ALValue retval;
-    for (int i=0; i< impl->eventNames.size(); i++){
+    for (int i=0; i< impl->events.size(); i++){
         AL::ALValue elm;
-        elm.arrayPush(impl->eventNames[i]);
-        elm.arrayPush(impl->eventObjectIds[i]);
+        elm.arrayPush(impl->events[i].name);
+        elm.arrayPush(impl->events[i].objectId);
         retval.arrayPush(elm);
     }
     impl->objTrackerLock.lock();
@@ -752,8 +661,8 @@ bool NAOObjectGesture::removeEvent(const std::string& name){
 
 void NAOObjectGesture::addGesture(const string &name, const AL::ALValue& dirList){
     impl->objTrackerLock.lock();
-    for (int i=0; i<impl->gestureNames.size(); i++){
-        if (name.compare(impl->gestureNames[i])==0){
+    for (int i=0; i<impl->gestures.size(); i++){
+        if (name.compare(impl->gestures[i].name)==0){
             qiLogError("NAOObjectGesture") << "Attempted to create gesture with duplicate name." << std::endl;
             impl->objTrackerLock.unlock();
             return;
@@ -779,19 +688,17 @@ void NAOObjectGesture::addGesture(const string &name, const AL::ALValue& dirList
         }
         directionList.push_back(el);
     }
-    Gesture temp(directionList);
+    Gesture temp(name, directionList);
     impl->gestures.push_back(temp);
-    impl->gestureNames.push_back(name);
     qiLogInfo("NAOObjectGesture") << "Added gesture " << name << std::endl;
     impl->objTrackerLock.unlock();
 }
 
 void NAOObjectGesture::removeGesture(const string &name){
     impl->objTrackerLock.lock();
-    for (int i=0; i<impl->gestureNames.size(); i++){
-        if (name.compare(impl->gestureNames[i])==0){
+    for (int i=0; i<impl->gestures.size(); i++){
+        if (name.compare(impl->gestures[i].name)==0){
             impl->gestures.erase(impl->gestures.begin()+i);
-            impl->gestureNames.erase(impl->gestureNames.begin()+i);
             impl->objTrackerLock.unlock();
             qiLogInfo("NAOObjectGesture") << "Removed gesture " << name << std::endl;
             return;
@@ -804,8 +711,8 @@ void NAOObjectGesture::removeGesture(const string &name){
 AL::ALValue NAOObjectGesture::getGestureList(){
     AL::ALValue retval;
     impl->objTrackerLock.lock();
-    for (int i=0; i<impl->gestureNames.size(); i++){
-        retval.arrayPush(impl->gestureNames[i]);
+    for (int i=0; i<impl->gestures.size(); i++){
+        retval.arrayPush(impl->gestures[i].name);
     }
     impl->objTrackerLock.unlock();
     return retval;
@@ -843,3 +750,74 @@ void NAOObjectGesture::stopFocus(){
     impl->focusObjectId = 0;
     impl->objTrackerLock.unlock();
 }
+
+NAOEvent::NAOEvent(string tName, int tObjectId): name(tName), objectId(tObjectId), trajectory(Trajectory()){}
+
+NAOEvent::NAOEvent(string tName, int tObjectId, vector<float> num, vector<float> den) : name(tName), objectId(tObjectId), trajectory(Trajectory(num, den)){}
+
+NAOEvent::~NAOEvent()
+{}
+
+void NAOEvent::notify(boost::shared_ptr<AL::ALMemoryProxy> memoryProxy, AL::ALValue value, vector<Gesture> gestures)
+{
+    AL::ALValue gesturesRecognized;
+    for (int i=0; i<gestures.size(); i++){
+        vector<int> gr = gestures[i].existsIn(trajectory, false);
+        if (gr.size()>0){
+            gesturesRecognized.arrayPush(gestures[i].name);
+        }
+    }
+    value.arrayPush(gesturesRecognized);
+    memoryProxy->raiseMicroEvent(name, value);
+    //this is an extremely inelegant way to do this
+    cv::Point2f newpt(0.0,0.0);
+    newpt.x = value[3][0];
+    newpt.y = value[3][1];
+    /*boost::posix_time::ptime time_t_epoch(boost::gregorian::date(1970,1,1));
+    boost::posix_time::ptime now(boost::posix_time::microsec_clock::local_time());
+    boost::posix_time::time_duration sinceEpoch = now-time_t_epoch;
+    trajectory.append(newpt, sinceEpoch.total_milliseconds());*/
+    long secs = (int)value[1][0];
+    long ms = (int)value[1][1];
+    long long timestamp = 1000*secs + ms;
+    trajectory.append(newpt, timestamp);
+}
+
+void NAOEvent::deadNotify(boost::shared_ptr<AL::ALMemoryProxy> memoryProxy, vector<Gesture> gestures)
+{
+    AL::ALValue lastData;
+    lastData.arrayPush(0);
+    AL::ALValue gesturesRecognized;
+    for (int i=0; i<gestures.size(); i++){
+        vector<int> gr = gestures[i].existsIn(trajectory, true);
+        if (gr.size()>0){
+            gesturesRecognized.arrayPush(gestures[i].name);
+        }
+    }
+    lastData.arrayPush(gesturesRecognized);
+    memoryProxy->raiseMicroEvent(name, lastData);
+    log(gestures);
+}
+
+void NAOEvent::log(vector<Gesture> gestures)
+{
+    boost::filesystem3::path tpath("/home/nao/LogTrajectory");
+    std::string tname = name;
+    time_t rawtime;
+    struct tm * timeinfo;
+    char buffer [80];
+    time (&rawtime);
+    timeinfo = localtime (&rawtime);
+    strftime(buffer, 80, "_%F_%H-%M-%S", timeinfo);
+    tname.append(buffer);
+    tname.append(".csv");
+    tpath/=tname;
+    trajectory.logTo(tpath, gestures);
+}
+
+void NAOEvent::log()
+{
+    vector<Gesture> temp;
+    log(temp);
+}
+

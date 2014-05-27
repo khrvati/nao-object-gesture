@@ -3,11 +3,28 @@
 
 #include <alvalue/alvalue.h>
 #include <alcommon/almodule.h>
+#include <alproxies/almemoryproxy.h>
 #include "boost/smart_ptr.hpp"
+#include "boost/filesystem.hpp"
 #include <string>
-
+#include "ObjectTracking.hpp"
+#include "GestureRecognition.hpp"
 
 namespace AL{class ALBroker; class ALModule;}
+
+class NAOEvent{
+public:
+    std::string name;
+    int objectId;
+    Trajectory trajectory;
+    NAOEvent(std::string tName, int tObjectId);
+    NAOEvent(std::string tName, int tObjectId, std::vector<float> num, std::vector<float> den);
+    ~NAOEvent();
+    void notify(boost::shared_ptr<AL::ALMemoryProxy> memoryProxy, AL::ALValue value,  std::vector<Gesture> gestures);
+    void deadNotify(boost::shared_ptr<AL::ALMemoryProxy> memoryProxy, std::vector<Gesture> gestures);
+    void log(std::vector<Gesture> gestures);
+    void log();
+};
 
 class NAOObjectGesture : public AL::ALModule {
 public:

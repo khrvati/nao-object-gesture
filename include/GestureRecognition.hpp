@@ -10,6 +10,8 @@
 
 using namespace std;
 
+class Gesture;
+
 class LTIFilter{
 protected:
     vector<cv::Point2f> out;
@@ -34,6 +36,7 @@ public:
     Trajectory();
     Trajectory(vector<float> num, vector<float> den);
     void logTo(boost::filesystem::path filename);
+    void logTo(boost::filesystem::path filePath, std::vector<Gesture> gestures);
     void append(cv::Point2f pt, long long time);
     void simplify(float eps);
     void cutoff(int idx);
@@ -41,14 +44,14 @@ public:
 
 class Gesture{
 protected:
-    string name;
     vector<int> directionList;
 public:
+    string name;
     Gesture();
-    Gesture(vector<int> directions);
+    Gesture(std::string tName, vector<int> directions);
     vector<int> existsIn(Trajectory &traj, bool lastPt);
     bool inState(float angle, int state, float angleOverlap = 0);
-    vector<int> existsInDebug(Trajectory &traj, bool lastPt);
+    vector<int> existsInDebug(Trajectory &traj, bool lastPt, float minDist);
 };
 
 #endif

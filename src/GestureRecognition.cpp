@@ -144,7 +144,13 @@ vector<int> Trajectory::rSimplify(float eps, int start, int stop){
 }
 
 void Trajectory::logTo(boost::filesystem::path filePath){
+    if (points.size()==0){
+        return;
+    }
     if (!filePath.empty()){
+        if (exists(filePath)){
+            boost::filesystem3::remove(filePath);
+        }
         boost::filesystem3::create_directories(filePath.parent_path());
         boost::filesystem::ofstream fileStream(filePath, ios::out | ios::app);
         for (int i=0; i<points.size(); i++){
@@ -154,9 +160,53 @@ void Trajectory::logTo(boost::filesystem::path filePath){
     }
 }
 
+void Trajectory::logTo(boost::filesystem::path filePath, vector<Gesture> gestures){
+    if (points.size()==0){
+        return;
+    }
+    if (gestures.size()==0){
+        logTo(filePath);
+        return;
+    }
+    if (!filePath.empty()){
+        if (exists(filePath)){
+            boost::filesystem3::remove(filePath);
+        }
+        boost::filesystem3::create_directories(filePath.parent_path());
+        boost::filesystem::ofstream fileStream(filePath, ios::out | ios::app);
+        for (int i=0; i<points.size(); i++){
+            fileStream << times[i] << ", " << points[i].x << ", " << points[i].y << ", " << rawPoints[i].x << ", " << rawPoints[i].y << endl;
+        }
+        fileStream.close();
+        boost::filesystem::path trajPath = filePath.replace_extension(".trajectory");
+        boost::filesystem::ofstream fileStreamTraj(trajPath, ios::out | ios::app);
+        for (int i=0; i<gestures.size(); i++){
+            vector<int> pts = gestures[i].existsInDebug(*this, true, 0.05);
+            fileStreamTraj << gestures[i].name << ", ";
+            for (int j=0; j<pts.size(); j++){
+                fileStreamTraj << pts[j] << ", ";
+            }
+            fileStreamTraj << std::endl;
+        }
+        fileStreamTraj.close();
+        boost::filesystem::path trajPath2 = filePath.replace_extension(".trajectoryfound");
+        boost::filesystem::ofstream fileStreamTraj2(trajPath2, ios::out | ios::app);
+        for (int i=0; i<gestures.size(); i++){
+            vector<int> pts = gestures[i].existsIn(*this, true);
+            fileStreamTraj2 << gestures[i].name << ", ";
+            for (int j=0; j<pts.size(); j++){
+                fileStreamTraj2 << pts[j] << ", ";
+            }
+            fileStreamTraj2 << std::endl;
+        }
+        fileStreamTraj2.close();
+    }
+}
 
 
-Gesture::Gesture(vector<int> directions) : directionList(directions){}
+
+
+Gesture::Gesture(std::string tName, vector<int> directions) : name(tName), directionList(directions){}
 
 /* old, segment continuation version
 vector<int> Gesture::existsIn(Trajectory& traj, bool lastPt){
@@ -222,10 +272,12 @@ vector<int> Gesture::existsIn(Trajectory& traj, bool lastPt){
     int startpt = 0;
     int pt0 = 0;
     for (int i=0; i<traj.points.size(); i++){
-        cv::Point ptdiff = traj.points[i]-traj.points[pt0];
+        cv::Point2f ptdiff = traj.points[i]-traj.points[pt0];
+        float ptdist = sqrt(pow(ptdiff.x,2)+pow(ptdiff.y,2));
         long long tdiff = traj.times[i]-traj.times[pt0];
-        if (cv::norm(ptdiff)>=minDist || tdiff>timeMs){
-            float angle = fmod(atan2(-ptdiff.y,ptdiff.x)+PI,(2*PI));
+        if (ptdist>=minDist || tdiff>timeMs){
+            //this might look bad, but NAO head angles require every axis to be inverted so it works
+            float angle = fmod(atan2(ptdiff.y,ptdiff.x)+PI,(2*PI));
             if (!inState(angle, state, angleOverlap) || tdiff>timeMs){
                 if (state==directionList.size()-1){
                     retval.push_back(startpt);
@@ -258,9 +310,8 @@ vector<int> Gesture::existsIn(Trajectory& traj, bool lastPt){
 }
 
 
-vector<int> Gesture::existsInDebug(Trajectory& traj, bool lastPt){
-    float minDist = 20;
-    long long timeMs = 1000;
+vector<int> Gesture::existsInDebug(Trajectory& traj, bool lastPt, float minDist){
+    long long timeMs = 1500;
     float angleOverlap = 5.0/180*PI;
     vector<int> retval;
     if (traj.points.size()<3 || directionList.size()<1){
@@ -272,10 +323,12 @@ vector<int> Gesture::existsInDebug(Trajectory& traj, bool lastPt){
     int pt0 = 0;
     bool validSeg = false;
     for (int i=0; i<traj.points.size(); i++){
-            cv::Point ptdiff = traj.points[i]-traj.points[pt0];
+            cv::Point2f ptdiff = traj.points[i]-traj.points[pt0];
+            float ptdist = sqrt(pow(ptdiff.x,2)+pow(ptdiff.y,2));
             long long tdiff = traj.times[i]-traj.times[pt0];
-            if (cv::norm(ptdiff)>=minDist || tdiff>timeMs){
-                float angle = fmod(atan2(ptdiff.y,-ptdiff.x)+PI,(2*PI));
+            if (ptdist>=minDist || tdiff>timeMs){
+                //this might look bad, but NAO head angles require every axis to be inverted so it works
+                float angle = fmod(atan2(ptdiff.y, ptdiff.x)+PI,(2*PI));
                 if (!inState(angle, state, angleOverlap) || tdiff>timeMs){
                     if (state==directionList.size()-1){
                         retval.push_back(i);

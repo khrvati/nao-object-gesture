@@ -44,10 +44,10 @@ int main(void)
         objname = "Cup";
     }
 
-    std::string rDir = "/home/kruno/trainingData/skin";
+    std::string rDir = "/home/kruno/trainingData/cupMax";
     //ImgSequence camera(rDir);
-    ConnectedCamera camera(1);
-    //NAOCamera camera(ip, port);
+    //ConnectedCamera camera(1);
+    NAOCamera camera(ip, port);
     ImageAcquisition* capture = &camera;
     Mat frame;
     
