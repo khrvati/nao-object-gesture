@@ -1,0 +1,141 @@
+\hypertarget{classLTIFilter}{\section{\-L\-T\-I\-Filter \-Class \-Reference}
+\label{classLTIFilter}\index{\-L\-T\-I\-Filter@{\-L\-T\-I\-Filter}}
+}
+
+
+\-Class for linear time-\/invariant filtering of cv\-::\-Point2f.  
+
+
+
+
+{\ttfamily \#include $<$\-Gesture\-Recognition.\-hpp$>$}
+
+\subsection*{\-Public \-Member \-Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classLTIFilter_a0d7b7751a8aa6a13f29c0400054289a2}{\-L\-T\-I\-Filter} ()
+\begin{DoxyCompactList}\small\item\em \-Default constructor. \end{DoxyCompactList}\item 
+\hyperlink{classLTIFilter_a10da1f0cc3ebd01d83d233942d7c2a9a}{\-L\-T\-I\-Filter} (vector$<$ float $>$ num, vector$<$ float $>$ den, float \-T)
+\begin{DoxyCompactList}\small\item\em \-Standard constructor. \end{DoxyCompactList}\item 
+void \hyperlink{classLTIFilter_a15eea87b68dc6ea1922dc456a0f23586}{process} (cv\-::\-Point2f input, cv\-::\-Point2f \&output)
+\begin{DoxyCompactList}\small\item\em \-Given an input for the current time step, calculate the output. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{\-Protected \-Attributes}
+\begin{DoxyCompactItemize}
+\item 
+vector$<$ cv\-::\-Point2f $>$ \hyperlink{classLTIFilter_a7e0e6a2458dfbe2c59e39f9a86d89f97}{out}
+\begin{DoxyCompactList}\small\item\em \-Record of past output values. \end{DoxyCompactList}\item 
+vector$<$ cv\-::\-Point2f $>$ \hyperlink{classLTIFilter_a88e509896075deb20014a50bd1fb8ad3}{in}
+\begin{DoxyCompactList}\small\item\em \-Record of past input values. \end{DoxyCompactList}\item 
+vector$<$ float $>$ \hyperlink{classLTIFilter_a974499baf5e9e72be47fad7102378799}{numerator}
+\begin{DoxyCompactList}\small\item\em \-Vector of numerator coefficients in descending order of powers of z. \end{DoxyCompactList}\item 
+vector$<$ float $>$ \hyperlink{classLTIFilter_a512a56c05c4012f9249792710961ab65}{denominator}
+\begin{DoxyCompactList}\small\item\em \-Vector of denominator coefficients in descending order of powers of z. \end{DoxyCompactList}\item 
+float \hyperlink{classLTIFilter_a25aebaf813e6c12a0acaaeaed6780b80}{discretization\-Time}
+\begin{DoxyCompactList}\small\item\em \-Discretization time. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{\-Detailed \-Description}
+\-Class for linear time-\/invariant filtering of cv\-::\-Point2f. 
+
+\-Supports causal filters of any order. \-Filter coefficients are stored as floats. \-Initial conditions for all state variables are set to 0. 
+
+\subsection{\-Constructor \& \-Destructor \-Documentation}
+\hypertarget{classLTIFilter_a0d7b7751a8aa6a13f29c0400054289a2}{\index{\-L\-T\-I\-Filter@{\-L\-T\-I\-Filter}!\-L\-T\-I\-Filter@{\-L\-T\-I\-Filter}}
+\index{\-L\-T\-I\-Filter@{\-L\-T\-I\-Filter}!LTIFilter@{\-L\-T\-I\-Filter}}
+\subsubsection[{\-L\-T\-I\-Filter}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-L\-T\-I\-Filter\-::\-L\-T\-I\-Filter} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{classLTIFilter_a0d7b7751a8aa6a13f29c0400054289a2}
+
+
+\-Default constructor. 
+
+\-Uninitialized filter simply acts as a gain of 1. \hypertarget{classLTIFilter_a10da1f0cc3ebd01d83d233942d7c2a9a}{\index{\-L\-T\-I\-Filter@{\-L\-T\-I\-Filter}!\-L\-T\-I\-Filter@{\-L\-T\-I\-Filter}}
+\index{\-L\-T\-I\-Filter@{\-L\-T\-I\-Filter}!LTIFilter@{\-L\-T\-I\-Filter}}
+\subsubsection[{\-L\-T\-I\-Filter}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-L\-T\-I\-Filter\-::\-L\-T\-I\-Filter} (
+\begin{DoxyParamCaption}
+\item[{vector$<$ float $>$}]{num, }
+\item[{vector$<$ float $>$}]{den, }
+\item[{float}]{\-T}
+\end{DoxyParamCaption}
+)}}\label{classLTIFilter_a10da1f0cc3ebd01d83d233942d7c2a9a}
+
+
+\-Standard constructor. 
+
+\-Takes numerator and denominator vectors in standard \-M\-A\-T\-L\-A\-B format. \-Numerator can be of smaller size than denominator, in which case it is front-\/filled with zeros until it is the same length. 
+\begin{DoxyParams}{\-Parameters}
+{\em num} & \-Filter transfer function numerator \\
+\hline
+{\em num} & \-Filter transfer function denominator \\
+\hline
+{\em num} & \-Filter discretization time (not used) \\
+\hline
+\end{DoxyParams}
+
+
+\subsection{\-Member \-Function \-Documentation}
+\hypertarget{classLTIFilter_a15eea87b68dc6ea1922dc456a0f23586}{\index{\-L\-T\-I\-Filter@{\-L\-T\-I\-Filter}!process@{process}}
+\index{process@{process}!LTIFilter@{\-L\-T\-I\-Filter}}
+\subsubsection[{process}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf \-L\-T\-I\-Filter\-::process} (
+\begin{DoxyParamCaption}
+\item[{cv\-::\-Point2f}]{input, }
+\item[{cv\-::\-Point2f \&}]{output}
+\end{DoxyParamCaption}
+)}}\label{classLTIFilter_a15eea87b68dc6ea1922dc456a0f23586}
+
+
+\-Given an input for the current time step, calculate the output. 
+
+\-Uses internal memory of past states to calculate output. \-Be careful not to pass the same value twice. 
+\begin{DoxyParams}{\-Parameters}
+{\em input} & \-Input point \\
+\hline
+{\em output} & \-Output point \\
+\hline
+\end{DoxyParams}
+
+
+\subsection{\-Field \-Documentation}
+\hypertarget{classLTIFilter_a512a56c05c4012f9249792710961ab65}{\index{\-L\-T\-I\-Filter@{\-L\-T\-I\-Filter}!denominator@{denominator}}
+\index{denominator@{denominator}!LTIFilter@{\-L\-T\-I\-Filter}}
+\subsubsection[{denominator}]{\setlength{\rightskip}{0pt plus 5cm}vector$<$float$>$ {\bf \-L\-T\-I\-Filter\-::denominator}\hspace{0.3cm}{\ttfamily  \mbox{[}protected\mbox{]}}}}\label{classLTIFilter_a512a56c05c4012f9249792710961ab65}
+
+
+\-Vector of denominator coefficients in descending order of powers of z. 
+
+\hypertarget{classLTIFilter_a25aebaf813e6c12a0acaaeaed6780b80}{\index{\-L\-T\-I\-Filter@{\-L\-T\-I\-Filter}!discretization\-Time@{discretization\-Time}}
+\index{discretization\-Time@{discretization\-Time}!LTIFilter@{\-L\-T\-I\-Filter}}
+\subsubsection[{discretization\-Time}]{\setlength{\rightskip}{0pt plus 5cm}float {\bf \-L\-T\-I\-Filter\-::discretization\-Time}\hspace{0.3cm}{\ttfamily  \mbox{[}protected\mbox{]}}}}\label{classLTIFilter_a25aebaf813e6c12a0acaaeaed6780b80}
+
+
+\-Discretization time. 
+
+\-Not used \hypertarget{classLTIFilter_a88e509896075deb20014a50bd1fb8ad3}{\index{\-L\-T\-I\-Filter@{\-L\-T\-I\-Filter}!in@{in}}
+\index{in@{in}!LTIFilter@{\-L\-T\-I\-Filter}}
+\subsubsection[{in}]{\setlength{\rightskip}{0pt plus 5cm}vector$<$cv\-::\-Point2f$>$ {\bf \-L\-T\-I\-Filter\-::in}\hspace{0.3cm}{\ttfamily  \mbox{[}protected\mbox{]}}}}\label{classLTIFilter_a88e509896075deb20014a50bd1fb8ad3}
+
+
+\-Record of past input values. 
+
+\hypertarget{classLTIFilter_a974499baf5e9e72be47fad7102378799}{\index{\-L\-T\-I\-Filter@{\-L\-T\-I\-Filter}!numerator@{numerator}}
+\index{numerator@{numerator}!LTIFilter@{\-L\-T\-I\-Filter}}
+\subsubsection[{numerator}]{\setlength{\rightskip}{0pt plus 5cm}vector$<$float$>$ {\bf \-L\-T\-I\-Filter\-::numerator}\hspace{0.3cm}{\ttfamily  \mbox{[}protected\mbox{]}}}}\label{classLTIFilter_a974499baf5e9e72be47fad7102378799}
+
+
+\-Vector of numerator coefficients in descending order of powers of z. 
+
+\hypertarget{classLTIFilter_a7e0e6a2458dfbe2c59e39f9a86d89f97}{\index{\-L\-T\-I\-Filter@{\-L\-T\-I\-Filter}!out@{out}}
+\index{out@{out}!LTIFilter@{\-L\-T\-I\-Filter}}
+\subsubsection[{out}]{\setlength{\rightskip}{0pt plus 5cm}vector$<$cv\-::\-Point2f$>$ {\bf \-L\-T\-I\-Filter\-::out}\hspace{0.3cm}{\ttfamily  \mbox{[}protected\mbox{]}}}}\label{classLTIFilter_a7e0e6a2458dfbe2c59e39f9a86d89f97}
+
+
+\-Record of past output values. 
+
+
+
+\-The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+include/\hyperlink{GestureRecognition_8hpp}{\-Gesture\-Recognition.\-hpp}\item 
+src/\hyperlink{GestureRecognition_8cpp}{\-Gesture\-Recognition.\-cpp}\end{DoxyCompactItemize}

@@ -1,0 +1,45 @@
+\hypertarget{NAOObjectGesture_8cpp}{\section{src/\-N\-A\-O\-Object\-Gesture.cpp \-File \-Reference}
+\label{NAOObjectGesture_8cpp}\index{src/\-N\-A\-O\-Object\-Gesture.\-cpp@{src/\-N\-A\-O\-Object\-Gesture.\-cpp}}
+}
+{\ttfamily \#include \char`\"{}\-N\-A\-O\-Object\-Gesture.\-h\char`\"{}}\*
+{\ttfamily \#include $<$iostream$>$}\*
+{\ttfamily \#include $<$fstream$>$}\*
+{\ttfamily \#include $<$opencv2/highgui/highgui.\-hpp$>$}\*
+{\ttfamily \#include $<$alcommon/alproxy.\-h$>$}\*
+{\ttfamily \#include $<$alcommon/albroker.\-h$>$}\*
+{\ttfamily \#include $<$alproxies/almemoryproxy.\-h$>$}\*
+{\ttfamily \#include $<$alproxies/alvideodeviceproxy.\-h$>$}\*
+{\ttfamily \#include $<$alproxies/almotionproxy.\-h$>$}\*
+{\ttfamily \#include $<$alvision/alimage.\-h$>$}\*
+{\ttfamily \#include $<$alvision/alvisiondefinitions.\-h$>$}\*
+{\ttfamily \#include $<$boost/date\-\_\-time/posix\-\_\-time/posix\-\_\-time.\-hpp$>$}\*
+{\ttfamily \#include $<$boost/thread.\-hpp$>$}\*
+{\ttfamily \#include $<$boost/ref.\-hpp$>$}\*
+{\ttfamily \#include $<$boost/lambda/lambda.\-hpp$>$}\*
+{\ttfamily \#include $<$boost/filesystem.\-hpp$>$}\*
+{\ttfamily \#include $<$boost/thread/pthread/condition\-\_\-variable.\-hpp$>$}\*
+{\ttfamily \#include $<$boost/thread/pthread/mutex.\-hpp$>$}\*
+{\ttfamily \#include $<$qi/log.\-hpp$>$}\*
+{\ttfamily \#include \char`\"{}include/\-Object\-Tracking.\-hpp\char`\"{}}\*
+{\ttfamily \#include \char`\"{}\-Gesture\-Recognition.\-hpp\char`\"{}}\*
+\subsection*{\-Data \-Structures}
+\begin{DoxyCompactItemize}
+\item 
+struct \hyperlink{structNAOObjectGesture_1_1Impl}{\-N\-A\-O\-Object\-Gesture\-::\-Impl}
+\end{DoxyCompactItemize}
+\subsection*{\-Defines}
+\begin{DoxyCompactItemize}
+\item 
+\#define \hyperlink{NAOObjectGesture_8cpp_a95d55ebfa2f2f1bd14867ad6a6cc9bfb}{\-R\-E\-S\-O\-L\-U\-T\-I\-O\-N}~\-A\-L\-::k\-Q\-V\-G\-A
+\item 
+\#define \hyperlink{NAOObjectGesture_8cpp_a5c8ee94fb0b7d55625373fa4c08ceff7}{\-C\-O\-L\-O\-R\-S\-P\-A\-C\-E}~\-A\-L\-::k\-B\-G\-R\-Color\-Space
+\end{DoxyCompactItemize}
+
+
+\subsection{\-Define \-Documentation}
+\hypertarget{NAOObjectGesture_8cpp_a5c8ee94fb0b7d55625373fa4c08ceff7}{\index{\-N\-A\-O\-Object\-Gesture.\-cpp@{\-N\-A\-O\-Object\-Gesture.\-cpp}!\-C\-O\-L\-O\-R\-S\-P\-A\-C\-E@{\-C\-O\-L\-O\-R\-S\-P\-A\-C\-E}}
+\index{\-C\-O\-L\-O\-R\-S\-P\-A\-C\-E@{\-C\-O\-L\-O\-R\-S\-P\-A\-C\-E}!NAOObjectGesture.cpp@{\-N\-A\-O\-Object\-Gesture.\-cpp}}
+\subsubsection[{\-C\-O\-L\-O\-R\-S\-P\-A\-C\-E}]{\setlength{\rightskip}{0pt plus 5cm}\#define {\bf \-C\-O\-L\-O\-R\-S\-P\-A\-C\-E}~\-A\-L\-::k\-B\-G\-R\-Color\-Space}}\label{NAOObjectGesture_8cpp_a5c8ee94fb0b7d55625373fa4c08ceff7}
+\hypertarget{NAOObjectGesture_8cpp_a95d55ebfa2f2f1bd14867ad6a6cc9bfb}{\index{\-N\-A\-O\-Object\-Gesture.\-cpp@{\-N\-A\-O\-Object\-Gesture.\-cpp}!\-R\-E\-S\-O\-L\-U\-T\-I\-O\-N@{\-R\-E\-S\-O\-L\-U\-T\-I\-O\-N}}
+\index{\-R\-E\-S\-O\-L\-U\-T\-I\-O\-N@{\-R\-E\-S\-O\-L\-U\-T\-I\-O\-N}!NAOObjectGesture.cpp@{\-N\-A\-O\-Object\-Gesture.\-cpp}}
+\subsubsection[{\-R\-E\-S\-O\-L\-U\-T\-I\-O\-N}]{\setlength{\rightskip}{0pt plus 5cm}\#define {\bf \-R\-E\-S\-O\-L\-U\-T\-I\-O\-N}~\-A\-L\-::k\-Q\-V\-G\-A}}\label{NAOObjectGesture_8cpp_a95d55ebfa2f2f1bd14867ad6a6cc9bfb}

@@ -1,0 +1,78 @@
+\hypertarget{classConnectedCamera}{\section{\-Connected\-Camera \-Class \-Reference}
+\label{classConnectedCamera}\index{\-Connected\-Camera@{\-Connected\-Camera}}
+}
+
+
+\-Class used to acquire images from a connected 2\-D camera by identified by device id.  
+
+
+
+
+{\ttfamily \#include $<$\-Image\-Acquisition.\-h$>$}
+
+\-Inheritance diagram for \-Connected\-Camera\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{classConnectedCamera}
+\end{center}
+\end{figure}
+\subsection*{\-Public \-Member \-Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classConnectedCamera_ae5cc81d793664312abeb1eca4dacd738}{\-Connected\-Camera} (int id)
+\begin{DoxyCompactList}\small\item\em \-Standard constructor. \end{DoxyCompactList}\item 
+bool \hyperlink{classConnectedCamera_a057b69fcbfcf601e95a3ff117d9bd6c3}{get\-Image} (cv\-::\-Mat \&output\-Image)
+\begin{DoxyCompactList}\small\item\em \-Gets image from connected camera. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{\-Detailed \-Description}
+\-Class used to acquire images from a connected 2\-D camera by identified by device id. 
+
+
+
+\subsection{\-Constructor \& \-Destructor \-Documentation}
+\hypertarget{classConnectedCamera_ae5cc81d793664312abeb1eca4dacd738}{\index{\-Connected\-Camera@{\-Connected\-Camera}!\-Connected\-Camera@{\-Connected\-Camera}}
+\index{\-Connected\-Camera@{\-Connected\-Camera}!ConnectedCamera@{\-Connected\-Camera}}
+\subsubsection[{\-Connected\-Camera}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-Connected\-Camera\-::\-Connected\-Camera} (
+\begin{DoxyParamCaption}
+\item[{int}]{id}
+\end{DoxyParamCaption}
+)}}\label{classConnectedCamera_ae5cc81d793664312abeb1eca4dacd738}
+
+
+\-Standard constructor. 
+
+\-If camera is unavailable, an exception is raised. 
+\begin{DoxyParams}{\-Parameters}
+{\em id} & \-Device id of camera to connect to. \\
+\hline
+\end{DoxyParams}
+
+
+\subsection{\-Member \-Function \-Documentation}
+\hypertarget{classConnectedCamera_a057b69fcbfcf601e95a3ff117d9bd6c3}{\index{\-Connected\-Camera@{\-Connected\-Camera}!get\-Image@{get\-Image}}
+\index{get\-Image@{get\-Image}!ConnectedCamera@{\-Connected\-Camera}}
+\subsubsection[{get\-Image}]{\setlength{\rightskip}{0pt plus 5cm}bool {\bf \-Connected\-Camera\-::get\-Image} (
+\begin{DoxyParamCaption}
+\item[{cv\-::\-Mat \&}]{output\-Image}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}virtual\mbox{]}}}}\label{classConnectedCamera_a057b69fcbfcf601e95a3ff117d9bd6c3}
+
+
+\-Gets image from connected camera. 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em output\-Image} & \-Matrix to store output into \\
+\hline
+\end{DoxyParams}
+
+
+\-Implements \hyperlink{classImageAcquisition_a737392ecb0e777fd6be9690ecf91d116}{\-Image\-Acquisition}.
+
+
+
+\-The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+include/\hyperlink{ImageAcquisition_8h}{\-Image\-Acquisition.\-h}\item 
+src/\hyperlink{ImageAcquisition_8cpp}{\-Image\-Acquisition.\-cpp}\end{DoxyCompactItemize}

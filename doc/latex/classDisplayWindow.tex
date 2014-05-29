@@ -1,0 +1,169 @@
+\hypertarget{classDisplayWindow}{\section{\-Display\-Window \-Class \-Reference}
+\label{classDisplayWindow}\index{\-Display\-Window@{\-Display\-Window}}
+}
+
+
+\-User interface class that implements an image processing pipeline.  
+
+
+
+
+{\ttfamily \#include $<$\-Display\-Window.\-hpp$>$}
+
+\subsection*{\-Public \-Member \-Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classDisplayWindow_afcdf3fd9c7531850bea42250321572f0}{\-Display\-Window} (\-String name)
+\begin{DoxyCompactList}\small\item\em \-Simple visualizer constructor. \end{DoxyCompactList}\item 
+\hyperlink{classDisplayWindow_a58626b41bbb9cb8ce0cfed3308f21e9d}{\-Display\-Window} (\-String name, std\-::vector$<$ \hyperlink{classProcessingElement}{\-Processing\-Element} $\ast$ $>$ prc\-Elm, std\-::vector$<$ std\-::vector$<$ int $>$ $>$ pipeline\-Vec)
+\begin{DoxyCompactList}\small\item\em \-Window constructor with processing elements. \end{DoxyCompactList}\item 
+void \hyperlink{classDisplayWindow_a3a96fe9c067e9564872fb9d4e1b0ee3a}{operator()} ()
+\begin{DoxyCompactList}\small\item\em \-Makes the object callable to enable threaded execution. \end{DoxyCompactList}\item 
+virtual void \hyperlink{classDisplayWindow_a6585a9a0b92f30e407db1a8b7481de1c}{display} (const \-Mat image)
+\begin{DoxyCompactList}\small\item\em \-Displays the passed image until a new image is passed. \end{DoxyCompactList}\item 
+virtual void \hyperlink{classDisplayWindow_a518f0c8495cd4b0b294024399cf1cd30}{process} (\-Mat input\-Image, \-Mat \&output\-Image, int t\-Mode)
+\begin{DoxyCompactList}\small\item\em \-Processes an input image using a specific pipeline. \end{DoxyCompactList}\item 
+void \hyperlink{classDisplayWindow_ae3e644f98bfd3581c9668adfbf044497}{set\-Image\-Folder} (std\-::string dir)
+\begin{DoxyCompactList}\small\item\em \-Sets a folder to display images from. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{\-Data \-Fields}
+\begin{DoxyCompactItemize}
+\item 
+boost\-::thread $\ast$ \hyperlink{classDisplayWindow_a1a4a4a8242cf94ccf43d1c75921f15e2}{t}
+\begin{DoxyCompactList}\small\item\em \-Thread object used to display disp\-Img and respond to user input. \end{DoxyCompactList}\item 
+bool \hyperlink{classDisplayWindow_a92d31815d9d2a06695ef140880f0fec9}{running}
+\begin{DoxyCompactList}\small\item\em \-Simple boolean variable to check if thread is still running. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{\-Detailed \-Description}
+\-User interface class that implements an image processing pipeline. 
+
+\subsection{\-Constructor \& \-Destructor \-Documentation}
+\hypertarget{classDisplayWindow_afcdf3fd9c7531850bea42250321572f0}{\index{\-Display\-Window@{\-Display\-Window}!\-Display\-Window@{\-Display\-Window}}
+\index{\-Display\-Window@{\-Display\-Window}!DisplayWindow@{\-Display\-Window}}
+\subsubsection[{\-Display\-Window}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-Display\-Window\-::\-Display\-Window} (
+\begin{DoxyParamCaption}
+\item[{\-String}]{name}
+\end{DoxyParamCaption}
+)}}\label{classDisplayWindow_afcdf3fd9c7531850bea42250321572f0}
+
+
+\-Simple visualizer constructor. 
+
+\-This constructor produces a window which does no processing. \-Useful when all that is needed is to display an image stream or to scroll through a folder full of images. 
+\begin{DoxyParams}{\-Parameters}
+{\em name} & \-Name of window to display images in \\
+\hline
+\end{DoxyParams}
+\hypertarget{classDisplayWindow_a58626b41bbb9cb8ce0cfed3308f21e9d}{\index{\-Display\-Window@{\-Display\-Window}!\-Display\-Window@{\-Display\-Window}}
+\index{\-Display\-Window@{\-Display\-Window}!DisplayWindow@{\-Display\-Window}}
+\subsubsection[{\-Display\-Window}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-Display\-Window\-::\-Display\-Window} (
+\begin{DoxyParamCaption}
+\item[{\-String}]{name, }
+\item[{std\-::vector$<$ {\bf \-Processing\-Element} $\ast$ $>$}]{prc\-Elm, }
+\item[{std\-::vector$<$ std\-::vector$<$ int $>$ $>$}]{pipeline\-Vec}
+\end{DoxyParamCaption}
+)}}\label{classDisplayWindow_a58626b41bbb9cb8ce0cfed3308f21e9d}
+
+
+\-Window constructor with processing elements. 
+
+\-This constructor produces a window with a defined set of processing elements arranged into pipelines. \-The order in which the processing elements are arranged in their own vector doesn't matter -\/ they are applied in the order they are listed in the pipeline vector. 
+\begin{DoxyParams}{\-Parameters}
+{\em name} & \-Name of window to display images in \\
+\hline
+{\em prc\-Elm} & \-Vector of processing elements to use. \\
+\hline
+{\em pipeline\-Vec} & \-Vector of pipelines \\
+\hline
+\end{DoxyParams}
+
+
+\subsection{\-Member \-Function \-Documentation}
+\hypertarget{classDisplayWindow_a6585a9a0b92f30e407db1a8b7481de1c}{\index{\-Display\-Window@{\-Display\-Window}!display@{display}}
+\index{display@{display}!DisplayWindow@{\-Display\-Window}}
+\subsubsection[{display}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf \-Display\-Window\-::display} (
+\begin{DoxyParamCaption}
+\item[{const \-Mat}]{image}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}virtual\mbox{]}}}}\label{classDisplayWindow_a6585a9a0b92f30e407db1a8b7481de1c}
+
+
+\-Displays the passed image until a new image is passed. 
+
+\-This function is fully threadsafe and should be used to push new images as fast as they can be acquired from the image source. \-The image will be stored, processed and displayed. 
+\begin{DoxyParams}{\-Parameters}
+{\em image} & \-Image to display and process \\
+\hline
+\end{DoxyParams}
+\hypertarget{classDisplayWindow_a3a96fe9c067e9564872fb9d4e1b0ee3a}{\index{\-Display\-Window@{\-Display\-Window}!operator()@{operator()}}
+\index{operator()@{operator()}!DisplayWindow@{\-Display\-Window}}
+\subsubsection[{operator()}]{\setlength{\rightskip}{0pt plus 5cm}void \-Display\-Window\-::operator() (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{classDisplayWindow_a3a96fe9c067e9564872fb9d4e1b0ee3a}
+
+
+\-Makes the object callable to enable threaded execution. 
+
+\hypertarget{classDisplayWindow_a518f0c8495cd4b0b294024399cf1cd30}{\index{\-Display\-Window@{\-Display\-Window}!process@{process}}
+\index{process@{process}!DisplayWindow@{\-Display\-Window}}
+\subsubsection[{process}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf \-Display\-Window\-::process} (
+\begin{DoxyParamCaption}
+\item[{\-Mat}]{input\-Image, }
+\item[{\-Mat \&}]{output\-Image, }
+\item[{int}]{t\-Mode}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}virtual\mbox{]}}}}\label{classDisplayWindow_a518f0c8495cd4b0b294024399cf1cd30}
+
+
+\-Processes an input image using a specific pipeline. 
+
+\-This function is used internally to process images but can also be called from outside to process a single image. 
+\begin{DoxyParams}{\-Parameters}
+{\em input\-Image} & \-Image to process \\
+\hline
+{\em output\-Image} & \-Matrix to store the result into \\
+\hline
+{\em t\-Mode} & \-Pipeline to use for processing (t\-Mode = 1 corresponds to pipeline\mbox{[}0\mbox{]}) \\
+\hline
+\end{DoxyParams}
+\hypertarget{classDisplayWindow_ae3e644f98bfd3581c9668adfbf044497}{\index{\-Display\-Window@{\-Display\-Window}!set\-Image\-Folder@{set\-Image\-Folder}}
+\index{set\-Image\-Folder@{set\-Image\-Folder}!DisplayWindow@{\-Display\-Window}}
+\subsubsection[{set\-Image\-Folder}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf \-Display\-Window\-::set\-Image\-Folder} (
+\begin{DoxyParamCaption}
+\item[{std\-::string}]{dir}
+\end{DoxyParamCaption}
+)}}\label{classDisplayWindow_ae3e644f98bfd3581c9668adfbf044497}
+
+
+\-Sets a folder to display images from. 
+
+\-Use this function when the user should be able to advance to the next image manually. \-The directory is not traversed recursively -\/ only the root directory is searched for images. 
+\begin{DoxyParams}{\-Parameters}
+{\em dir} & \-Full path to directory containing only images or other directories. \\
+\hline
+\end{DoxyParams}
+
+
+\subsection{\-Field \-Documentation}
+\hypertarget{classDisplayWindow_a92d31815d9d2a06695ef140880f0fec9}{\index{\-Display\-Window@{\-Display\-Window}!running@{running}}
+\index{running@{running}!DisplayWindow@{\-Display\-Window}}
+\subsubsection[{running}]{\setlength{\rightskip}{0pt plus 5cm}bool {\bf \-Display\-Window\-::running}}}\label{classDisplayWindow_a92d31815d9d2a06695ef140880f0fec9}
+
+
+\-Simple boolean variable to check if thread is still running. 
+
+\hypertarget{classDisplayWindow_a1a4a4a8242cf94ccf43d1c75921f15e2}{\index{\-Display\-Window@{\-Display\-Window}!t@{t}}
+\index{t@{t}!DisplayWindow@{\-Display\-Window}}
+\subsubsection[{t}]{\setlength{\rightskip}{0pt plus 5cm}boost\-::thread$\ast$ {\bf \-Display\-Window\-::t}}}\label{classDisplayWindow_a1a4a4a8242cf94ccf43d1c75921f15e2}
+
+
+\-Thread object used to display disp\-Img and respond to user input. 
+
+
+
+\-The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+include/\hyperlink{DisplayWindow_8hpp}{\-Display\-Window.\-hpp}\item 
+src/\hyperlink{DisplayWindow_8cpp}{\-Display\-Window.\-cpp}\end{DoxyCompactItemize}

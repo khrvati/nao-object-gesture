@@ -18,9 +18,8 @@
 #include <boost/ref.hpp>
 #include <boost/lambda/lambda.hpp>
 #include <boost/filesystem.hpp>
-
 #include <boost/thread/pthread/condition_variable.hpp>
-#include <boost/thread/pthread/mutex.hpp> //remove
+#include <boost/thread/pthread/mutex.hpp>
 
 #include <qi/log.hpp>
 #include "include/ObjectTracking.hpp"

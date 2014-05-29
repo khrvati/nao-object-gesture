@@ -1,0 +1,94 @@
+\hypertarget{classNAOCamera}{\section{\-N\-A\-O\-Camera \-Class \-Reference}
+\label{classNAOCamera}\index{\-N\-A\-O\-Camera@{\-N\-A\-O\-Camera}}
+}
+
+
+\-Class used to acquire images from \-N\-A\-O connected over network.  
+
+
+
+
+{\ttfamily \#include $<$\-Image\-Acquisition.\-h$>$}
+
+\-Inheritance diagram for \-N\-A\-O\-Camera\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{classNAOCamera}
+\end{center}
+\end{figure}
+\subsection*{\-Public \-Member \-Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classNAOCamera_a584e00b66c60403015a40751080dd934}{\-N\-A\-O\-Camera} (const std\-::string \-I\-P, int port)
+\begin{DoxyCompactList}\small\item\em \-Standard constructor. \end{DoxyCompactList}\item 
+\hyperlink{classNAOCamera_a47f8a368e74438cb8ded8398fe21ffa8}{$\sim$\-N\-A\-O\-Camera} ()
+\begin{DoxyCompactList}\small\item\em \-Destructor. \end{DoxyCompactList}\item 
+bool \hyperlink{classNAOCamera_a7315ec601d76c75cc79eaa18cecb5be7}{get\-Image} (cv\-::\-Mat \&output\-Image)
+\begin{DoxyCompactList}\small\item\em \-Gets image from \-N\-A\-O. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{\-Detailed \-Description}
+\-Class used to acquire images from \-N\-A\-O connected over network. 
+
+
+
+\subsection{\-Constructor \& \-Destructor \-Documentation}
+\hypertarget{classNAOCamera_a584e00b66c60403015a40751080dd934}{\index{\-N\-A\-O\-Camera@{\-N\-A\-O\-Camera}!\-N\-A\-O\-Camera@{\-N\-A\-O\-Camera}}
+\index{\-N\-A\-O\-Camera@{\-N\-A\-O\-Camera}!NAOCamera@{\-N\-A\-O\-Camera}}
+\subsubsection[{\-N\-A\-O\-Camera}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-N\-A\-O\-Camera\-::\-N\-A\-O\-Camera} (
+\begin{DoxyParamCaption}
+\item[{const std\-::string}]{\-I\-P, }
+\item[{int}]{port}
+\end{DoxyParamCaption}
+)}}\label{classNAOCamera_a584e00b66c60403015a40751080dd934}
+
+
+\-Standard constructor. 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em \-I\-P} & \-I\-P of \-N\-A\-O to connect to. \\
+\hline
+{\em port} & \-Port over which to connect \\
+\hline
+\end{DoxyParams}
+\hypertarget{classNAOCamera_a47f8a368e74438cb8ded8398fe21ffa8}{\index{\-N\-A\-O\-Camera@{\-N\-A\-O\-Camera}!$\sim$\-N\-A\-O\-Camera@{$\sim$\-N\-A\-O\-Camera}}
+\index{$\sim$\-N\-A\-O\-Camera@{$\sim$\-N\-A\-O\-Camera}!NAOCamera@{\-N\-A\-O\-Camera}}
+\subsubsection[{$\sim$\-N\-A\-O\-Camera}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-N\-A\-O\-Camera\-::$\sim$\-N\-A\-O\-Camera} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{classNAOCamera_a47f8a368e74438cb8ded8398fe21ffa8}
+
+
+\-Destructor. 
+
+\-Terminates the \-N\-A\-O connection and unsubscribes from the video stream. 
+
+\subsection{\-Member \-Function \-Documentation}
+\hypertarget{classNAOCamera_a7315ec601d76c75cc79eaa18cecb5be7}{\index{\-N\-A\-O\-Camera@{\-N\-A\-O\-Camera}!get\-Image@{get\-Image}}
+\index{get\-Image@{get\-Image}!NAOCamera@{\-N\-A\-O\-Camera}}
+\subsubsection[{get\-Image}]{\setlength{\rightskip}{0pt plus 5cm}bool {\bf \-N\-A\-O\-Camera\-::get\-Image} (
+\begin{DoxyParamCaption}
+\item[{cv\-::\-Mat \&}]{output\-Image}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}virtual\mbox{]}}}}\label{classNAOCamera_a7315ec601d76c75cc79eaa18cecb5be7}
+
+
+\-Gets image from \-N\-A\-O. 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em output\-Image} & \-Matrix to store output into \\
+\hline
+\end{DoxyParams}
+
+
+\-Implements \hyperlink{classImageAcquisition_a737392ecb0e777fd6be9690ecf91d116}{\-Image\-Acquisition}.
+
+
+
+\-The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+include/\hyperlink{ImageAcquisition_8h}{\-Image\-Acquisition.\-h}\item 
+src/\hyperlink{ImageAcquisition_8cpp}{\-Image\-Acquisition.\-cpp}\end{DoxyCompactItemize}

@@ -318,7 +318,9 @@ void TrackedObject::unOcclude(){
     occluders.clear();
 }
 
-ObjectTracker::ObjectTracker(){    
+ObjectTracker::ObjectTracker(){
+    name = "ObjectTracker";
+    initialized = true;
     frameNumber = 0;
     nextObjectIdx = 1;
 }

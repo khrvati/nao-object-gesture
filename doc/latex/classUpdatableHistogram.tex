@@ -1,0 +1,129 @@
+\hypertarget{classUpdatableHistogram}{\section{\-Updatable\-Histogram \-Class \-Reference}
+\label{classUpdatableHistogram}\index{\-Updatable\-Histogram@{\-Updatable\-Histogram}}
+}
+
+
+{\ttfamily \#include $<$\-Object\-Tracking.\-hpp$>$}
+
+\-Inheritance diagram for \-Updatable\-Histogram\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{classUpdatableHistogram}
+\end{center}
+\end{figure}
+\subsection*{\-Public \-Member \-Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classUpdatableHistogram_a15fc0d1ffe1457090ec3590698cd580f}{\-Updatable\-Histogram} ()
+\item 
+\hyperlink{classUpdatableHistogram_a3bb23bc331d69dacc0a5d1e8544e4fd3}{\-Updatable\-Histogram} (int \hyperlink{classHistogram_a2143ce56ddacb3295a8aa0e3ac8d06f7}{channels}\mbox{[}2\mbox{]}, int histogram\-Size\mbox{[}2\mbox{]}, float channel1range\mbox{[}2\mbox{]}, float channel2range\mbox{[}2\mbox{]}, int buffer\-Size)
+\item 
+void \hyperlink{classUpdatableHistogram_aa3911bc41c2bcf4962814a42c92dc328}{update} (\-Mat image, double alpha, const \-Mat mask)
+\begin{DoxyCompactList}\small\item\em \-Updates an existing histogram. \end{DoxyCompactList}\item 
+void \hyperlink{classUpdatableHistogram_a79f6625306a30dbbc7a2f39b1596ed56}{from\-Image} (const vector$<$ \-Mat $>$ image, const vector$<$ \-Mat $>$ mask)
+\item 
+void \hyperlink{classUpdatableHistogram_a09f0f888514fa7d46297d41747f0e441}{to\-Image} (std\-::string root\-Path)
+\item 
+bool \hyperlink{classUpdatableHistogram_ab454a2e9aa450cd0869fc52fdf441a1d}{from\-Stored} (std\-::string root\-Path)
+\end{DoxyCompactItemize}
+\subsection*{\-Protected \-Attributes}
+\begin{DoxyCompactItemize}
+\item 
+int \hyperlink{classUpdatableHistogram_aa0cf3b5b3174764222da9a728a3b0fca}{buffersize}
+\item 
+vector$<$ \-Mat $>$ \hyperlink{classUpdatableHistogram_a18e0495a1aebebc1b0c0199a1ca725db}{buffer}
+\item 
+\-Mat \hyperlink{classUpdatableHistogram_a7c49e770fc9b5fc4542326ca39e7537b}{offline}
+\end{DoxyCompactItemize}
+
+
+\subsection{\-Constructor \& \-Destructor \-Documentation}
+\hypertarget{classUpdatableHistogram_a15fc0d1ffe1457090ec3590698cd580f}{\index{\-Updatable\-Histogram@{\-Updatable\-Histogram}!\-Updatable\-Histogram@{\-Updatable\-Histogram}}
+\index{\-Updatable\-Histogram@{\-Updatable\-Histogram}!UpdatableHistogram@{\-Updatable\-Histogram}}
+\subsubsection[{\-Updatable\-Histogram}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-Updatable\-Histogram\-::\-Updatable\-Histogram} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{classUpdatableHistogram_a15fc0d1ffe1457090ec3590698cd580f}
+\hypertarget{classUpdatableHistogram_a3bb23bc331d69dacc0a5d1e8544e4fd3}{\index{\-Updatable\-Histogram@{\-Updatable\-Histogram}!\-Updatable\-Histogram@{\-Updatable\-Histogram}}
+\index{\-Updatable\-Histogram@{\-Updatable\-Histogram}!UpdatableHistogram@{\-Updatable\-Histogram}}
+\subsubsection[{\-Updatable\-Histogram}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-Updatable\-Histogram\-::\-Updatable\-Histogram} (
+\begin{DoxyParamCaption}
+\item[{int}]{channels\mbox{[}2\mbox{]}, }
+\item[{int}]{histogram\-Size\mbox{[}2\mbox{]}, }
+\item[{float}]{channel1range\mbox{[}2\mbox{]}, }
+\item[{float}]{channel2range\mbox{[}2\mbox{]}, }
+\item[{int}]{buffer\-Size}
+\end{DoxyParamCaption}
+)}}\label{classUpdatableHistogram_a3bb23bc331d69dacc0a5d1e8544e4fd3}
+
+
+\subsection{\-Member \-Function \-Documentation}
+\hypertarget{classUpdatableHistogram_a79f6625306a30dbbc7a2f39b1596ed56}{\index{\-Updatable\-Histogram@{\-Updatable\-Histogram}!from\-Image@{from\-Image}}
+\index{from\-Image@{from\-Image}!UpdatableHistogram@{\-Updatable\-Histogram}}
+\subsubsection[{from\-Image}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf \-Updatable\-Histogram\-::from\-Image} (
+\begin{DoxyParamCaption}
+\item[{const vector$<$ \-Mat $>$}]{image, }
+\item[{const vector$<$ \-Mat $>$}]{mask}
+\end{DoxyParamCaption}
+)}}\label{classUpdatableHistogram_a79f6625306a30dbbc7a2f39b1596ed56}
+\hypertarget{classUpdatableHistogram_ab454a2e9aa450cd0869fc52fdf441a1d}{\index{\-Updatable\-Histogram@{\-Updatable\-Histogram}!from\-Stored@{from\-Stored}}
+\index{from\-Stored@{from\-Stored}!UpdatableHistogram@{\-Updatable\-Histogram}}
+\subsubsection[{from\-Stored}]{\setlength{\rightskip}{0pt plus 5cm}bool {\bf \-Updatable\-Histogram\-::from\-Stored} (
+\begin{DoxyParamCaption}
+\item[{std\-::string}]{root\-Path}
+\end{DoxyParamCaption}
+)}}\label{classUpdatableHistogram_ab454a2e9aa450cd0869fc52fdf441a1d}
+\hypertarget{classUpdatableHistogram_a09f0f888514fa7d46297d41747f0e441}{\index{\-Updatable\-Histogram@{\-Updatable\-Histogram}!to\-Image@{to\-Image}}
+\index{to\-Image@{to\-Image}!UpdatableHistogram@{\-Updatable\-Histogram}}
+\subsubsection[{to\-Image}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf \-Updatable\-Histogram\-::to\-Image} (
+\begin{DoxyParamCaption}
+\item[{std\-::string}]{root\-Path}
+\end{DoxyParamCaption}
+)}}\label{classUpdatableHistogram_a09f0f888514fa7d46297d41747f0e441}
+\hypertarget{classUpdatableHistogram_aa3911bc41c2bcf4962814a42c92dc328}{\index{\-Updatable\-Histogram@{\-Updatable\-Histogram}!update@{update}}
+\index{update@{update}!UpdatableHistogram@{\-Updatable\-Histogram}}
+\subsubsection[{update}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf \-Updatable\-Histogram\-::update} (
+\begin{DoxyParamCaption}
+\item[{\-Mat}]{image, }
+\item[{double}]{alpha, }
+\item[{const \-Mat}]{mask}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}virtual\mbox{]}}}}\label{classUpdatableHistogram_aa3911bc41c2bcf4962814a42c92dc328}
+
+
+\-Updates an existing histogram. 
+
+\-Given a masked image and a learning coefficient alpha, decay the pixel accumulator by $\ast$=(1-\/alpha), add the masked pixels to the accumulator, then construct a new histogram from the accumulated pixels.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em image} & \-Input image already converted to the desired color space \\
+\hline
+{\em alpha} & \-Learning coefficient \\
+\hline
+{\em mask} & \-Matrix of type \-C\-V\-\_\-8\-U which defines the pixels to consider when building the histogram. \\
+\hline
+\end{DoxyParams}
+
+
+\-Reimplemented from \hyperlink{classHistogram_abdf2f05d9c70bcdde9e309570e4535cf}{\-Histogram}.
+
+
+
+\subsection{\-Field \-Documentation}
+\hypertarget{classUpdatableHistogram_a18e0495a1aebebc1b0c0199a1ca725db}{\index{\-Updatable\-Histogram@{\-Updatable\-Histogram}!buffer@{buffer}}
+\index{buffer@{buffer}!UpdatableHistogram@{\-Updatable\-Histogram}}
+\subsubsection[{buffer}]{\setlength{\rightskip}{0pt plus 5cm}vector$<$\-Mat$>$ {\bf \-Updatable\-Histogram\-::buffer}\hspace{0.3cm}{\ttfamily  \mbox{[}protected\mbox{]}}}}\label{classUpdatableHistogram_a18e0495a1aebebc1b0c0199a1ca725db}
+\hypertarget{classUpdatableHistogram_aa0cf3b5b3174764222da9a728a3b0fca}{\index{\-Updatable\-Histogram@{\-Updatable\-Histogram}!buffersize@{buffersize}}
+\index{buffersize@{buffersize}!UpdatableHistogram@{\-Updatable\-Histogram}}
+\subsubsection[{buffersize}]{\setlength{\rightskip}{0pt plus 5cm}int {\bf \-Updatable\-Histogram\-::buffersize}\hspace{0.3cm}{\ttfamily  \mbox{[}protected\mbox{]}}}}\label{classUpdatableHistogram_aa0cf3b5b3174764222da9a728a3b0fca}
+\hypertarget{classUpdatableHistogram_a7c49e770fc9b5fc4542326ca39e7537b}{\index{\-Updatable\-Histogram@{\-Updatable\-Histogram}!offline@{offline}}
+\index{offline@{offline}!UpdatableHistogram@{\-Updatable\-Histogram}}
+\subsubsection[{offline}]{\setlength{\rightskip}{0pt plus 5cm}\-Mat {\bf \-Updatable\-Histogram\-::offline}\hspace{0.3cm}{\ttfamily  \mbox{[}protected\mbox{]}}}}\label{classUpdatableHistogram_a7c49e770fc9b5fc4542326ca39e7537b}
+
+
+\-The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+include/\hyperlink{ObjectTracking_8hpp}{\-Object\-Tracking.\-hpp}\item 
+src/\hyperlink{ObjectTracking_8cpp}{\-Object\-Tracking.\-cpp}\end{DoxyCompactItemize}

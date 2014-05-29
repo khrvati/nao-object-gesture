@@ -277,7 +277,7 @@ vector<int> Gesture::existsIn(Trajectory& traj, bool lastPt){
         long long tdiff = traj.times[i]-traj.times[pt0];
         if (ptdist>=minDist || tdiff>timeMs){
             //this might look bad, but NAO head angles require every axis to be inverted so it works
-            float angle = fmod(atan2(ptdiff.y,ptdiff.x)+PI,(2*PI));
+            float angle = fmod(atan2(ptdiff.y,-ptdiff.x)+PI,(2*PI));
             if (!inState(angle, state, angleOverlap) || tdiff>timeMs){
                 if (state==directionList.size()-1){
                     retval.push_back(startpt);
@@ -328,7 +328,7 @@ vector<int> Gesture::existsInDebug(Trajectory& traj, bool lastPt, float minDist)
             long long tdiff = traj.times[i]-traj.times[pt0];
             if (ptdist>=minDist || tdiff>timeMs){
                 //this might look bad, but NAO head angles require every axis to be inverted so it works
-                float angle = fmod(atan2(ptdiff.y, ptdiff.x)+PI,(2*PI));
+                float angle = fmod(atan2(ptdiff.y, -ptdiff.x)+PI,(2*PI));
                 if (!inState(angle, state, angleOverlap) || tdiff>timeMs){
                     if (state==directionList.size()-1){
                         retval.push_back(i);

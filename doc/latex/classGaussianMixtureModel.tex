@@ -1,0 +1,219 @@
+\hypertarget{classGaussianMixtureModel}{\section{\-Gaussian\-Mixture\-Model \-Class \-Reference}
+\label{classGaussianMixtureModel}\index{\-Gaussian\-Mixture\-Model@{\-Gaussian\-Mixture\-Model}}
+}
+
+
+\-A class for constructing multivariate gaussian mixture models using the \-E\-M algorithm with built-\/in support for generalizing histograms.  
+
+
+
+
+{\ttfamily \#include $<$\-Img\-Proc\-Pipeline.\-hpp$>$}
+
+\subsection*{\-Public \-Member \-Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classGaussianMixtureModel_a8b82fa82e365b6738d7ab0a4db83c5eb}{\-Gaussian\-Mixture\-Model} ()
+\begin{DoxyCompactList}\small\item\em \-Default constructor. \end{DoxyCompactList}\item 
+\hyperlink{classGaussianMixtureModel_a45513392d67091e55d263a24a83d13b9}{\-Gaussian\-Mixture\-Model} (int dims, int \-K)
+\begin{DoxyCompactList}\small\item\em \-Standard constructor. \end{DoxyCompactList}\item 
+\hyperlink{classGaussianMixtureModel_a61c576d83e4b671768610bfd8694bb35}{\-Gaussian\-Mixture\-Model} (const \hyperlink{classGaussianMixtureModel}{\-Gaussian\-Mixture\-Model} \&other)
+\begin{DoxyCompactList}\small\item\em \-Copy constructor. \end{DoxyCompactList}\item 
+\hyperlink{classGaussianMixtureModel}{\-Gaussian\-Mixture\-Model} \& \hyperlink{classGaussianMixtureModel_abdfd7139a813b0cabd7d072c7c99269b}{operator=} (const \hyperlink{classGaussianMixtureModel}{\-Gaussian\-Mixture\-Model} \&other)
+\begin{DoxyCompactList}\small\item\em \-Assignment operator. \end{DoxyCompactList}\item 
+void \hyperlink{classGaussianMixtureModel_a50c3b8e8dcf817607ffa6b9e7ca28a1d}{run\-Expectation\-Maximization} (const \-Mat samples, int max\-Iterations, double min\-Step\-Increase)
+\begin{DoxyCompactList}\small\item\em \-Runs the \-E\-M algorithm on a dataset consisting of (\-N+1)-\/dimensional row vectors. \end{DoxyCompactList}\item 
+double \hyperlink{classGaussianMixtureModel_a85bd90a3f233462b27970c296206edfa}{get} (const \-Mat x)
+\begin{DoxyCompactList}\small\item\em \-Gets the model value at a point. \end{DoxyCompactList}\item 
+void \hyperlink{classGaussianMixtureModel_af12b9007da58f868a0724f1113d59c30}{make\-Lookup} (int hist\-Size\mbox{[}2\mbox{]}, float c1range\mbox{[}2\mbox{]}, float c2range\mbox{[}2\mbox{]})
+\begin{DoxyCompactList}\small\item\em \-Makes a lookup table in histogram format for easier and faster access. \end{DoxyCompactList}\item 
+void \hyperlink{classGaussianMixtureModel_af2d24c4841b1bacb985d9a62afafc1c0}{from\-Histogram} (const \-Mat histogram, int hist\-Size\mbox{[}2\mbox{]}, float c1range\mbox{[}2\mbox{]}, float c2range\mbox{[}2\mbox{]}, int max\-Iter, double min\-Step\-Increase)
+\begin{DoxyCompactList}\small\item\em \-Given a two-\/dimensional histogram, generate a \-G\-M\-M that best describes it. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{\-Data \-Fields}
+\begin{DoxyCompactItemize}
+\item 
+\-Mat \hyperlink{classGaussianMixtureModel_afde458726dd2e66b469ed68c1234bee3}{lookup}
+\begin{DoxyCompactList}\small\item\em \-Lookup table constructed with make\-Lookup. \end{DoxyCompactList}\item 
+bool \hyperlink{classGaussianMixtureModel_a70dc4df2fca35a0795b06745e85b2979}{initialized}
+\begin{DoxyCompactList}\small\item\em \-True if model has been constructed, false otherwise. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{\-Detailed \-Description}
+\-A class for constructing multivariate gaussian mixture models using the \-E\-M algorithm with built-\/in support for generalizing histograms. 
+
+\-This class can be used to create a gaussian mixture model from any dataset stored as the rows of a cv\-::\-Mat. \-Rows are (\-N+1)-\/dimensional vectors, where \-N is the dimensionality of the \-G\-M\-M to be constructed and the last element represents the number of identical data points to be taken into considerations. \-This is done to greatly speed up the \-E\-M algorithm in the case of many identical data points, such as when processing histograms. \-The constructed model can be accessed directly for any point in \-N-\/dimensional space or via a lookup table, which can be constructed for faster access in the 2-\/dimensional case. 
+
+\subsection{\-Constructor \& \-Destructor \-Documentation}
+\hypertarget{classGaussianMixtureModel_a8b82fa82e365b6738d7ab0a4db83c5eb}{\index{\-Gaussian\-Mixture\-Model@{\-Gaussian\-Mixture\-Model}!\-Gaussian\-Mixture\-Model@{\-Gaussian\-Mixture\-Model}}
+\index{\-Gaussian\-Mixture\-Model@{\-Gaussian\-Mixture\-Model}!GaussianMixtureModel@{\-Gaussian\-Mixture\-Model}}
+\subsubsection[{\-Gaussian\-Mixture\-Model}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-Gaussian\-Mixture\-Model\-::\-Gaussian\-Mixture\-Model} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{classGaussianMixtureModel_a8b82fa82e365b6738d7ab0a4db83c5eb}
+
+
+\-Default constructor. 
+
+\-Does nothing, but sets initialized to false to disincentivize use. \hypertarget{classGaussianMixtureModel_a45513392d67091e55d263a24a83d13b9}{\index{\-Gaussian\-Mixture\-Model@{\-Gaussian\-Mixture\-Model}!\-Gaussian\-Mixture\-Model@{\-Gaussian\-Mixture\-Model}}
+\index{\-Gaussian\-Mixture\-Model@{\-Gaussian\-Mixture\-Model}!GaussianMixtureModel@{\-Gaussian\-Mixture\-Model}}
+\subsubsection[{\-Gaussian\-Mixture\-Model}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-Gaussian\-Mixture\-Model\-::\-Gaussian\-Mixture\-Model} (
+\begin{DoxyParamCaption}
+\item[{int}]{dims, }
+\item[{int}]{\-K}
+\end{DoxyParamCaption}
+)}}\label{classGaussianMixtureModel_a45513392d67091e55d263a24a83d13b9}
+
+
+\-Standard constructor. 
+
+\-Defines dimensionality and number of components of resulting gaussian mixture model. 
+\begin{DoxyParams}{\-Parameters}
+{\em dims} & \-Model dimensionality \\
+\hline
+{\em \-K} & \-Number of components \\
+\hline
+\end{DoxyParams}
+\hypertarget{classGaussianMixtureModel_a61c576d83e4b671768610bfd8694bb35}{\index{\-Gaussian\-Mixture\-Model@{\-Gaussian\-Mixture\-Model}!\-Gaussian\-Mixture\-Model@{\-Gaussian\-Mixture\-Model}}
+\index{\-Gaussian\-Mixture\-Model@{\-Gaussian\-Mixture\-Model}!GaussianMixtureModel@{\-Gaussian\-Mixture\-Model}}
+\subsubsection[{\-Gaussian\-Mixture\-Model}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-Gaussian\-Mixture\-Model\-::\-Gaussian\-Mixture\-Model} (
+\begin{DoxyParamCaption}
+\item[{const {\bf \-Gaussian\-Mixture\-Model} \&}]{other}
+\end{DoxyParamCaption}
+)}}\label{classGaussianMixtureModel_a61c576d83e4b671768610bfd8694bb35}
+
+
+\-Copy constructor. 
+
+
+
+\subsection{\-Member \-Function \-Documentation}
+\hypertarget{classGaussianMixtureModel_af2d24c4841b1bacb985d9a62afafc1c0}{\index{\-Gaussian\-Mixture\-Model@{\-Gaussian\-Mixture\-Model}!from\-Histogram@{from\-Histogram}}
+\index{from\-Histogram@{from\-Histogram}!GaussianMixtureModel@{\-Gaussian\-Mixture\-Model}}
+\subsubsection[{from\-Histogram}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf \-Gaussian\-Mixture\-Model\-::from\-Histogram} (
+\begin{DoxyParamCaption}
+\item[{const \-Mat}]{histogram, }
+\item[{int}]{hist\-Size\mbox{[}2\mbox{]}, }
+\item[{float}]{c1range\mbox{[}2\mbox{]}, }
+\item[{float}]{c2range\mbox{[}2\mbox{]}, }
+\item[{int}]{max\-Iter = {\ttfamily 10}, }
+\item[{double}]{min\-Step\-Increase = {\ttfamily 0.01}}
+\end{DoxyParamCaption}
+)}}\label{classGaussianMixtureModel_af2d24c4841b1bacb985d9a62afafc1c0}
+
+
+\-Given a two-\/dimensional histogram, generate a \-G\-M\-M that best describes it. 
+
+\-The function calls make\-Lookup after the \-G\-M\-M has been generated.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em histogram} & \-A 2-\/dimensional histogram \\
+\hline
+{\em hist\-Size} & \-Number of bins in each dimension. \\
+\hline
+{\em c1range} & \-Range of histogram values for the first dimension \\
+\hline
+{\em c2range} & \-Range of histogram values for the second dimension \\
+\hline
+{\em max\-Iter} & \-Maximum number of iterations after which the \-E\-M algorithm terminates \\
+\hline
+{\em min\-Step\-Increase} & \-Percentage increase of log likelihood below which the local optimum is presumed to have been achieved \\
+\hline
+\end{DoxyParams}
+\hypertarget{classGaussianMixtureModel_a85bd90a3f233462b27970c296206edfa}{\index{\-Gaussian\-Mixture\-Model@{\-Gaussian\-Mixture\-Model}!get@{get}}
+\index{get@{get}!GaussianMixtureModel@{\-Gaussian\-Mixture\-Model}}
+\subsubsection[{get}]{\setlength{\rightskip}{0pt plus 5cm}double {\bf \-Gaussian\-Mixture\-Model\-::get} (
+\begin{DoxyParamCaption}
+\item[{const \-Mat}]{x}
+\end{DoxyParamCaption}
+)}}\label{classGaussianMixtureModel_a85bd90a3f233462b27970c296206edfa}
+
+
+\-Gets the model value at a point. 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em x} & \-N-\/dimensional query point \\
+\hline
+\end{DoxyParams}
+\hypertarget{classGaussianMixtureModel_af12b9007da58f868a0724f1113d59c30}{\index{\-Gaussian\-Mixture\-Model@{\-Gaussian\-Mixture\-Model}!make\-Lookup@{make\-Lookup}}
+\index{make\-Lookup@{make\-Lookup}!GaussianMixtureModel@{\-Gaussian\-Mixture\-Model}}
+\subsubsection[{make\-Lookup}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf \-Gaussian\-Mixture\-Model\-::make\-Lookup} (
+\begin{DoxyParamCaption}
+\item[{int}]{hist\-Size\mbox{[}2\mbox{]}, }
+\item[{float}]{c1range\mbox{[}2\mbox{]}, }
+\item[{float}]{c2range\mbox{[}2\mbox{]}}
+\end{DoxyParamCaption}
+)}}\label{classGaussianMixtureModel_af12b9007da58f868a0724f1113d59c30}
+
+
+\-Makes a lookup table in histogram format for easier and faster access. 
+
+\-Only works for two-\/dimensional gaussian mixture models. \-The created uniform histogram is defined by the number of bins in each dimension and the range of values in each dimension. \-The function stores the histogram in the object's lookup attribute after normalizing it so that the max value equals 1
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em hist\-Size} & \-Number of bins in each dimension. \\
+\hline
+{\em c1range} & \-Range of histogram values for the first dimension \\
+\hline
+{\em c2range} & \-Range of histogram values for the second dimension \\
+\hline
+\end{DoxyParams}
+\hypertarget{classGaussianMixtureModel_abdfd7139a813b0cabd7d072c7c99269b}{\index{\-Gaussian\-Mixture\-Model@{\-Gaussian\-Mixture\-Model}!operator=@{operator=}}
+\index{operator=@{operator=}!GaussianMixtureModel@{\-Gaussian\-Mixture\-Model}}
+\subsubsection[{operator=}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-Gaussian\-Mixture\-Model} \& \-Gaussian\-Mixture\-Model\-::operator= (
+\begin{DoxyParamCaption}
+\item[{const {\bf \-Gaussian\-Mixture\-Model} \&}]{other}
+\end{DoxyParamCaption}
+)}}\label{classGaussianMixtureModel_abdfd7139a813b0cabd7d072c7c99269b}
+
+
+\-Assignment operator. 
+
+\hypertarget{classGaussianMixtureModel_a50c3b8e8dcf817607ffa6b9e7ca28a1d}{\index{\-Gaussian\-Mixture\-Model@{\-Gaussian\-Mixture\-Model}!run\-Expectation\-Maximization@{run\-Expectation\-Maximization}}
+\index{run\-Expectation\-Maximization@{run\-Expectation\-Maximization}!GaussianMixtureModel@{\-Gaussian\-Mixture\-Model}}
+\subsubsection[{run\-Expectation\-Maximization}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf \-Gaussian\-Mixture\-Model\-::run\-Expectation\-Maximization} (
+\begin{DoxyParamCaption}
+\item[{const \-Mat}]{samples, }
+\item[{int}]{max\-Iterations, }
+\item[{double}]{min\-Step\-Increase}
+\end{DoxyParamCaption}
+)}}\label{classGaussianMixtureModel_a50c3b8e8dcf817607ffa6b9e7ca28a1d}
+
+
+\-Runs the \-E\-M algorithm on a dataset consisting of (\-N+1)-\/dimensional row vectors. 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em samples} & \-A matrix of size \-Mx(\-N+1), where \-M is the number of unique data points and \-N is the model's dimensionality. \-The last element in the row vector is the number of identical data points. \\
+\hline
+{\em max\-Iterations} & \-Maximum number of iterations after which the \-E\-M algorithm terminates \\
+\hline
+{\em min\-Step\-Increase} & \-Percentage increase of log likelihood below which the local optimum is presumed to have been achieved \\
+\hline
+\end{DoxyParams}
+
+
+\subsection{\-Field \-Documentation}
+\hypertarget{classGaussianMixtureModel_a70dc4df2fca35a0795b06745e85b2979}{\index{\-Gaussian\-Mixture\-Model@{\-Gaussian\-Mixture\-Model}!initialized@{initialized}}
+\index{initialized@{initialized}!GaussianMixtureModel@{\-Gaussian\-Mixture\-Model}}
+\subsubsection[{initialized}]{\setlength{\rightskip}{0pt plus 5cm}bool {\bf \-Gaussian\-Mixture\-Model\-::initialized}}}\label{classGaussianMixtureModel_a70dc4df2fca35a0795b06745e85b2979}
+
+
+\-True if model has been constructed, false otherwise. 
+
+\hypertarget{classGaussianMixtureModel_afde458726dd2e66b469ed68c1234bee3}{\index{\-Gaussian\-Mixture\-Model@{\-Gaussian\-Mixture\-Model}!lookup@{lookup}}
+\index{lookup@{lookup}!GaussianMixtureModel@{\-Gaussian\-Mixture\-Model}}
+\subsubsection[{lookup}]{\setlength{\rightskip}{0pt plus 5cm}\-Mat {\bf \-Gaussian\-Mixture\-Model\-::lookup}}}\label{classGaussianMixtureModel_afde458726dd2e66b469ed68c1234bee3}
+
+
+\-Lookup table constructed with make\-Lookup. 
+
+
+
+\-The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+include/\hyperlink{ImgProcPipeline_8hpp}{\-Img\-Proc\-Pipeline.\-hpp}\item 
+src/\hyperlink{ImgProcPipeline_8cpp}{\-Img\-Proc\-Pipeline.\-cpp}\end{DoxyCompactItemize}

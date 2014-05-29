@@ -1,0 +1,303 @@
+\hypertarget{classHistogram}{\section{\-Histogram \-Class \-Reference}
+\label{classHistogram}\index{\-Histogram@{\-Histogram}}
+}
+
+
+\-A class used for simplifying histogram backpropagation, with support for gaussian mixture model construction.  
+
+
+
+
+{\ttfamily \#include $<$\-Img\-Proc\-Pipeline.\-hpp$>$}
+
+\-Inheritance diagram for \-Histogram\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{classHistogram}
+\end{center}
+\end{figure}
+\subsection*{\-Public \-Member \-Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classHistogram_af681f293852ac145f867ecfcce3062a5}{\-Histogram} ()
+\begin{DoxyCompactList}\small\item\em \-Default constructor. \end{DoxyCompactList}\item 
+\hyperlink{classHistogram_ab3ba3b109e3a84f5c37cefe0b2b48805}{\-Histogram} (int \hyperlink{classHistogram_a2143ce56ddacb3295a8aa0e3ac8d06f7}{channels}\mbox{[}2\mbox{]}, int histogram\-Size\mbox{[}2\mbox{]}, float channel1range\mbox{[}2\mbox{]}, float channel2range\mbox{[}2\mbox{]})
+\begin{DoxyCompactList}\small\item\em \-Standard constructor. \end{DoxyCompactList}\item 
+\hyperlink{classHistogram_afed71ab02baa416129ebe375ad07868a}{\-Histogram} (const \hyperlink{classHistogram}{\-Histogram} \&other)
+\begin{DoxyCompactList}\small\item\em \-Copy constructor. \end{DoxyCompactList}\item 
+\hyperlink{classHistogram}{\-Histogram} \& \hyperlink{classHistogram_aa482e0813acfc907175c8b90ba4d982c}{operator=} (const \hyperlink{classHistogram}{\-Histogram} \&other)
+\begin{DoxyCompactList}\small\item\em \-Assignment operator. \end{DoxyCompactList}\item 
+virtual void \hyperlink{classHistogram_a1012031886d619600be244dfd2bca6e9}{from\-Image} (\-Mat image, const \-Mat mask)
+\begin{DoxyCompactList}\small\item\em \-Creates a histogram from a masked image. \end{DoxyCompactList}\item 
+virtual void \hyperlink{classHistogram_abdf2f05d9c70bcdde9e309570e4535cf}{update} (\-Mat image, double alpha, const \-Mat mask)
+\begin{DoxyCompactList}\small\item\em \-Updates an existing histogram. \end{DoxyCompactList}\item 
+void \hyperlink{classHistogram_a6f99b00a8d0e2733852092d572fca6cc}{back\-Propagate} (\-Mat input\-Image, \-Mat $\ast$output\-Image)
+\begin{DoxyCompactList}\small\item\em \-Runs histogram backpropagation on the input image and returns a probability image. \end{DoxyCompactList}\item 
+void \hyperlink{classHistogram_aecf785ab81dd8d694230485b42fe3488}{make\-G\-M\-M} (int \-K, int max\-Iter, double min\-Step\-Increase)
+\begin{DoxyCompactList}\small\item\em \-Makes a gaussian mixture model from the existing histogram and stores a normalized lookup table as the new histogram. \end{DoxyCompactList}\item 
+void \hyperlink{classHistogram_a4f24ca4c93db4bb8edf8bdb875b41158}{resize} (int histogram\-Size\mbox{[}2\mbox{]})
+\begin{DoxyCompactList}\small\item\em \-Sets the stored histogram size to the new specified values. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{\-Data \-Fields}
+\begin{DoxyCompactItemize}
+\item 
+bool \hyperlink{classHistogram_a5e10a5415fa15ef0f47559eafed3e5e3}{gmm\-Ready}
+\begin{DoxyCompactList}\small\item\em \-Boolean flag used to check if \-G\-M\-M is initialized. \end{DoxyCompactList}\item 
+\-Mat \hyperlink{classHistogram_a09a02c61bdced17b5fe0fe2351fa8ba9}{normalized}
+\begin{DoxyCompactList}\small\item\em \-The actual histogram, normalized so that the maximum value equals 1. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{\-Protected \-Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\-Mat \hyperlink{classHistogram_a2ab3cb1258570c69ef65261e63cd3d68}{accumulator}
+\begin{DoxyCompactList}\small\item\em \-Integer matrix used to store the raw number of pixels. \end{DoxyCompactList}\item 
+int \hyperlink{classHistogram_aaedf097871b566db37a9c3a8c4370367}{hist\-Size} \mbox{[}2\mbox{]}
+\begin{DoxyCompactList}\small\item\em \-Number of histogram bins in each dimension. \end{DoxyCompactList}\item 
+int \hyperlink{classHistogram_a2143ce56ddacb3295a8aa0e3ac8d06f7}{channels} \mbox{[}2\mbox{]}
+\begin{DoxyCompactList}\small\item\em \-Array of image channels to construct the histogram from. \end{DoxyCompactList}\item 
+float \hyperlink{classHistogram_a86b67a4ddc798541c12cb9402a65790b}{c1range} \mbox{[}2\mbox{]}
+\begin{DoxyCompactList}\small\item\em \-Range of histogram values for the first dimension. \end{DoxyCompactList}\item 
+float \hyperlink{classHistogram_a0279598c0cef21107554447bbbfe22b6}{c2range} \mbox{[}2\mbox{]}
+\begin{DoxyCompactList}\small\item\em \-Range of histogram values for the second dimension. \end{DoxyCompactList}\item 
+\hyperlink{classGaussianMixtureModel}{\-Gaussian\-Mixture\-Model} \hyperlink{classHistogram_a6006a95143aa084fd18e9db7c5525142}{gmm}
+\begin{DoxyCompactList}\small\item\em \-Gaussian mixture model object. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{\-Detailed \-Description}
+\-A class used for simplifying histogram backpropagation, with support for gaussian mixture model construction. 
+
+\-This class is a container for all the data needed to construct and backpropagate a histogram using \-Open\-C\-V's built-\/in functions. \-It provides a simple way to use histogram backpropagation with two-\/dimensional histograms. \-It also contains an uninitialized gaussian mixture model which can be constructed from the stored histogram whenever needed. 
+
+\subsection{\-Constructor \& \-Destructor \-Documentation}
+\hypertarget{classHistogram_af681f293852ac145f867ecfcce3062a5}{\index{\-Histogram@{\-Histogram}!\-Histogram@{\-Histogram}}
+\index{\-Histogram@{\-Histogram}!Histogram@{\-Histogram}}
+\subsubsection[{\-Histogram}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-Histogram\-::\-Histogram} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{classHistogram_af681f293852ac145f867ecfcce3062a5}
+
+
+\-Default constructor. 
+
+\hypertarget{classHistogram_ab3ba3b109e3a84f5c37cefe0b2b48805}{\index{\-Histogram@{\-Histogram}!\-Histogram@{\-Histogram}}
+\index{\-Histogram@{\-Histogram}!Histogram@{\-Histogram}}
+\subsubsection[{\-Histogram}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-Histogram\-::\-Histogram} (
+\begin{DoxyParamCaption}
+\item[{int}]{channels\mbox{[}2\mbox{]}, }
+\item[{int}]{histogram\-Size\mbox{[}2\mbox{]}, }
+\item[{float}]{channel1range\mbox{[}2\mbox{]}, }
+\item[{float}]{channel2range\mbox{[}2\mbox{]}}
+\end{DoxyParamCaption}
+)}}\label{classHistogram_ab3ba3b109e3a84f5c37cefe0b2b48805}
+
+
+\-Standard constructor. 
+
+\-Use this constructor to initialize the object, then call from\-Image to make the histogram.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em channels} & \-Array of image channels to construct the histogram from \\
+\hline
+{\em histogram\-Size} & \-Number of histogram bins in each dimension \\
+\hline
+{\em channel1range} & \-Range of histogram values for the first dimension \\
+\hline
+{\em channel2range} & \-Range of histogram values for the second dimension \\
+\hline
+\end{DoxyParams}
+\hypertarget{classHistogram_afed71ab02baa416129ebe375ad07868a}{\index{\-Histogram@{\-Histogram}!\-Histogram@{\-Histogram}}
+\index{\-Histogram@{\-Histogram}!Histogram@{\-Histogram}}
+\subsubsection[{\-Histogram}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-Histogram\-::\-Histogram} (
+\begin{DoxyParamCaption}
+\item[{const {\bf \-Histogram} \&}]{other}
+\end{DoxyParamCaption}
+)}}\label{classHistogram_afed71ab02baa416129ebe375ad07868a}
+
+
+\-Copy constructor. 
+
+
+
+\subsection{\-Member \-Function \-Documentation}
+\hypertarget{classHistogram_a6f99b00a8d0e2733852092d572fca6cc}{\index{\-Histogram@{\-Histogram}!back\-Propagate@{back\-Propagate}}
+\index{back\-Propagate@{back\-Propagate}!Histogram@{\-Histogram}}
+\subsubsection[{back\-Propagate}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf \-Histogram\-::back\-Propagate} (
+\begin{DoxyParamCaption}
+\item[{\-Mat}]{input\-Image, }
+\item[{\-Mat $\ast$}]{output\-Image}
+\end{DoxyParamCaption}
+)}}\label{classHistogram_a6f99b00a8d0e2733852092d572fca6cc}
+
+
+\-Runs histogram backpropagation on the input image and returns a probability image. 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em input\-Image} & \-Input image already converted to the desired color space \\
+\hline
+{\em output\-Image} & \-Pointer to the output matrix \\
+\hline
+\end{DoxyParams}
+\hypertarget{classHistogram_a1012031886d619600be244dfd2bca6e9}{\index{\-Histogram@{\-Histogram}!from\-Image@{from\-Image}}
+\index{from\-Image@{from\-Image}!Histogram@{\-Histogram}}
+\subsubsection[{from\-Image}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf \-Histogram\-::from\-Image} (
+\begin{DoxyParamCaption}
+\item[{\-Mat}]{image, }
+\item[{const \-Mat}]{mask = {\ttfamily \-Mat()}}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}virtual\mbox{]}}}}\label{classHistogram_a1012031886d619600be244dfd2bca6e9}
+
+
+\-Creates a histogram from a masked image. 
+
+\-If the mask is not an empty matrix, the histogram is generated from those pixels at which the mask is equal to 255.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em image} & \-Input image already converted to the desired color space \\
+\hline
+{\em mask} & \-Matrix of type \-C\-V\-\_\-8\-U which defines the pixels to consider when building the histogram. \\
+\hline
+\end{DoxyParams}
+\hypertarget{classHistogram_aecf785ab81dd8d694230485b42fe3488}{\index{\-Histogram@{\-Histogram}!make\-G\-M\-M@{make\-G\-M\-M}}
+\index{make\-G\-M\-M@{make\-G\-M\-M}!Histogram@{\-Histogram}}
+\subsubsection[{make\-G\-M\-M}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf \-Histogram\-::make\-G\-M\-M} (
+\begin{DoxyParamCaption}
+\item[{int}]{\-K, }
+\item[{int}]{max\-Iter = {\ttfamily 10}, }
+\item[{double}]{min\-Step\-Increase = {\ttfamily 0.01}}
+\end{DoxyParamCaption}
+)}}\label{classHistogram_aecf785ab81dd8d694230485b42fe3488}
+
+
+\-Makes a gaussian mixture model from the existing histogram and stores a normalized lookup table as the new histogram. 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em \-K} & \-Number of components for the gaussian mixture model \\
+\hline
+{\em max\-Iter} & \-Maximum number of iterations after which the \-E\-M algorithm terminates \\
+\hline
+{\em min\-Step\-Increase} & \-Percentage increase of log likelihood below which the local optimum is presumed to have been achieved \\
+\hline
+\end{DoxyParams}
+\hypertarget{classHistogram_aa482e0813acfc907175c8b90ba4d982c}{\index{\-Histogram@{\-Histogram}!operator=@{operator=}}
+\index{operator=@{operator=}!Histogram@{\-Histogram}}
+\subsubsection[{operator=}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-Histogram} \& \-Histogram\-::operator= (
+\begin{DoxyParamCaption}
+\item[{const {\bf \-Histogram} \&}]{other}
+\end{DoxyParamCaption}
+)}}\label{classHistogram_aa482e0813acfc907175c8b90ba4d982c}
+
+
+\-Assignment operator. 
+
+\hypertarget{classHistogram_a4f24ca4c93db4bb8edf8bdb875b41158}{\index{\-Histogram@{\-Histogram}!resize@{resize}}
+\index{resize@{resize}!Histogram@{\-Histogram}}
+\subsubsection[{resize}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf \-Histogram\-::resize} (
+\begin{DoxyParamCaption}
+\item[{int}]{histogram\-Size\mbox{[}2\mbox{]}}
+\end{DoxyParamCaption}
+)}}\label{classHistogram_a4f24ca4c93db4bb8edf8bdb875b41158}
+
+
+\-Sets the stored histogram size to the new specified values. 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em histogram\-Size} & \-New histogram size \\
+\hline
+\end{DoxyParams}
+\hypertarget{classHistogram_abdf2f05d9c70bcdde9e309570e4535cf}{\index{\-Histogram@{\-Histogram}!update@{update}}
+\index{update@{update}!Histogram@{\-Histogram}}
+\subsubsection[{update}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf \-Histogram\-::update} (
+\begin{DoxyParamCaption}
+\item[{\-Mat}]{image, }
+\item[{double}]{alpha, }
+\item[{const \-Mat}]{mask = {\ttfamily \-Mat()}}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}virtual\mbox{]}}}}\label{classHistogram_abdf2f05d9c70bcdde9e309570e4535cf}
+
+
+\-Updates an existing histogram. 
+
+\-Given a masked image and a learning coefficient alpha, decay the pixel accumulator by $\ast$=(1-\/alpha), add the masked pixels to the accumulator, then construct a new histogram from the accumulated pixels.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em image} & \-Input image already converted to the desired color space \\
+\hline
+{\em alpha} & \-Learning coefficient \\
+\hline
+{\em mask} & \-Matrix of type \-C\-V\-\_\-8\-U which defines the pixels to consider when building the histogram. \\
+\hline
+\end{DoxyParams}
+
+
+\-Reimplemented in \hyperlink{classUpdatableHistogram_aa3911bc41c2bcf4962814a42c92dc328}{\-Updatable\-Histogram}.
+
+
+
+\subsection{\-Field \-Documentation}
+\hypertarget{classHistogram_a2ab3cb1258570c69ef65261e63cd3d68}{\index{\-Histogram@{\-Histogram}!accumulator@{accumulator}}
+\index{accumulator@{accumulator}!Histogram@{\-Histogram}}
+\subsubsection[{accumulator}]{\setlength{\rightskip}{0pt plus 5cm}\-Mat {\bf \-Histogram\-::accumulator}\hspace{0.3cm}{\ttfamily  \mbox{[}protected\mbox{]}}}}\label{classHistogram_a2ab3cb1258570c69ef65261e63cd3d68}
+
+
+\-Integer matrix used to store the raw number of pixels. 
+
+\hypertarget{classHistogram_a86b67a4ddc798541c12cb9402a65790b}{\index{\-Histogram@{\-Histogram}!c1range@{c1range}}
+\index{c1range@{c1range}!Histogram@{\-Histogram}}
+\subsubsection[{c1range}]{\setlength{\rightskip}{0pt plus 5cm}float {\bf \-Histogram\-::c1range}\mbox{[}2\mbox{]}\hspace{0.3cm}{\ttfamily  \mbox{[}protected\mbox{]}}}}\label{classHistogram_a86b67a4ddc798541c12cb9402a65790b}
+
+
+\-Range of histogram values for the first dimension. 
+
+\hypertarget{classHistogram_a0279598c0cef21107554447bbbfe22b6}{\index{\-Histogram@{\-Histogram}!c2range@{c2range}}
+\index{c2range@{c2range}!Histogram@{\-Histogram}}
+\subsubsection[{c2range}]{\setlength{\rightskip}{0pt plus 5cm}float {\bf \-Histogram\-::c2range}\mbox{[}2\mbox{]}\hspace{0.3cm}{\ttfamily  \mbox{[}protected\mbox{]}}}}\label{classHistogram_a0279598c0cef21107554447bbbfe22b6}
+
+
+\-Range of histogram values for the second dimension. 
+
+\hypertarget{classHistogram_a2143ce56ddacb3295a8aa0e3ac8d06f7}{\index{\-Histogram@{\-Histogram}!channels@{channels}}
+\index{channels@{channels}!Histogram@{\-Histogram}}
+\subsubsection[{channels}]{\setlength{\rightskip}{0pt plus 5cm}int {\bf \-Histogram\-::channels}\mbox{[}2\mbox{]}\hspace{0.3cm}{\ttfamily  \mbox{[}protected\mbox{]}}}}\label{classHistogram_a2143ce56ddacb3295a8aa0e3ac8d06f7}
+
+
+\-Array of image channels to construct the histogram from. 
+
+\hypertarget{classHistogram_a6006a95143aa084fd18e9db7c5525142}{\index{\-Histogram@{\-Histogram}!gmm@{gmm}}
+\index{gmm@{gmm}!Histogram@{\-Histogram}}
+\subsubsection[{gmm}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-Gaussian\-Mixture\-Model} {\bf \-Histogram\-::gmm}\hspace{0.3cm}{\ttfamily  \mbox{[}protected\mbox{]}}}}\label{classHistogram_a6006a95143aa084fd18e9db7c5525142}
+
+
+\-Gaussian mixture model object. 
+
+\hypertarget{classHistogram_a5e10a5415fa15ef0f47559eafed3e5e3}{\index{\-Histogram@{\-Histogram}!gmm\-Ready@{gmm\-Ready}}
+\index{gmm\-Ready@{gmm\-Ready}!Histogram@{\-Histogram}}
+\subsubsection[{gmm\-Ready}]{\setlength{\rightskip}{0pt plus 5cm}bool {\bf \-Histogram\-::gmm\-Ready}}}\label{classHistogram_a5e10a5415fa15ef0f47559eafed3e5e3}
+
+
+\-Boolean flag used to check if \-G\-M\-M is initialized. 
+
+\hypertarget{classHistogram_aaedf097871b566db37a9c3a8c4370367}{\index{\-Histogram@{\-Histogram}!hist\-Size@{hist\-Size}}
+\index{hist\-Size@{hist\-Size}!Histogram@{\-Histogram}}
+\subsubsection[{hist\-Size}]{\setlength{\rightskip}{0pt plus 5cm}int {\bf \-Histogram\-::hist\-Size}\mbox{[}2\mbox{]}\hspace{0.3cm}{\ttfamily  \mbox{[}protected\mbox{]}}}}\label{classHistogram_aaedf097871b566db37a9c3a8c4370367}
+
+
+\-Number of histogram bins in each dimension. 
+
+\hypertarget{classHistogram_a09a02c61bdced17b5fe0fe2351fa8ba9}{\index{\-Histogram@{\-Histogram}!normalized@{normalized}}
+\index{normalized@{normalized}!Histogram@{\-Histogram}}
+\subsubsection[{normalized}]{\setlength{\rightskip}{0pt plus 5cm}\-Mat {\bf \-Histogram\-::normalized}}}\label{classHistogram_a09a02c61bdced17b5fe0fe2351fa8ba9}
+
+
+\-The actual histogram, normalized so that the maximum value equals 1. 
+
+
+
+\-The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+include/\hyperlink{ImgProcPipeline_8hpp}{\-Img\-Proc\-Pipeline.\-hpp}\item 
+src/\hyperlink{ImgProcPipeline_8cpp}{\-Img\-Proc\-Pipeline.\-cpp}\end{DoxyCompactItemize}

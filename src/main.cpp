@@ -28,29 +28,53 @@ using namespace cv;
 using namespace boost::filesystem;
 
 int main(void)
-{
-    std::string ip = "169.254.89.225";
-    int port = 9559;
-    std::string objname = "Cup";
-    try{
+{ 
+
+
+    bool usingCamera = true;
+    path iniPath = "config.ini";
+    ImageAcquisition* capture;
+    std::string rDir = "";
+    std::string imgseq = "";
+    if (!exists(iniPath)){
+        ConnectedCamera* camera = new ConnectedCamera(0);
+        capture = camera;
+    }
+    else {
         boost::property_tree::ptree pt;
-        boost::property_tree::ini_parser::read_ini("Rene.ini", pt);
-        ip = pt.get<string>("Grab settings.IP");
-        port = pt.get<int>("Grab settings.PORT");
-        objname = pt.get<string>("Grab settings.Object_name");
-    } catch (std::exception &e){
-        ip = "169.254.89.225";
-        port = 9559;
-        objname = "Cup";
+        boost::property_tree::ini_parser::read_ini(iniPath.string(), pt);
+        rDir = pt.get<string>("Local.ImageDirectory", "");
+        int localCam = pt.get<int>("Local.UseLocalCamera", 0);
+        if (localCam){
+            int camid = pt.get<int>("Local.Camera", -1);
+            if (camid<0){
+                std::cout << "Connecting to default local camera" << std::endl;
+                ConnectedCamera* camera = new ConnectedCamera(0);
+                capture = camera;
+            }
+            else {
+                std::cout << "Connecting to local camera " << camid << std::endl;
+                ConnectedCamera* camera = new ConnectedCamera(camid);
+                capture = camera;
+            }
+        }
+        else {
+            int uImSeq = pt.get<int>("Local.UseImageSequence", 0);
+            if (uImSeq){
+                imgseq = pt.get<string>("Local.ImageSequence", "");
+                std::cout << "Playing image sequence at " << imgseq <<  std::endl;
+                usingCamera = false;
+            }
+            else {
+                std::string ip = pt.get<string>("Grab settings.IP", "");
+                int port = pt.get<int>("Grab settings.PORT", 0);
+                std::cout << "Connecting to NAO at " << ip << ":" << port <<  std::endl;
+                NAOCamera* camera = new NAOCamera(ip, port);
+                capture = camera;
+            }
+        }
     }
 
-    std::string rDir = "/home/kruno/trainingData/cupMax";
-    //ImgSequence camera(rDir);
-    //ConnectedCamera camera(1);
-    NAOCamera camera(ip, port);
-    ImageAcquisition* capture = &camera;
-    Mat frame;
-    
     int hSize[] = {32,32};
     int colorCode = CV_BGR2HLS;
     vector<ProcessingElement*> pipeline;
@@ -113,7 +137,6 @@ int main(void)
     }
     images.clear();
     masks.clear();
-    //imshow("asdf", objtrack.objectKinds[0].normalized);
 
     OpticalFlow optFlow;
     generalPtr = static_cast<ProcessingElement*>(&optFlow);
@@ -123,34 +146,26 @@ int main(void)
     generalPtr = static_cast<ProcessingElement*>(&bgs);
     pipeline.push_back(generalPtr);
 
-    vector<vector<int>> pipelineIdVector;
+    vector<vector<int > > pipelineIdVector;
     vector<int> temp = {6};
-    pipelineIdVector.push_back(temp);
-    //temp = {0,2,4,5};
-    temp = {8};
-    pipelineIdVector.push_back(temp);
-    temp = {7};
     pipelineIdVector.push_back(temp);
     
     String windowname="Color Histogram Backpropagation";
-    
     DisplayWindow window(windowname, pipeline,pipelineIdVector);
-    
-    while (capture->getImage(frame))
-    {
-        if(frame.empty())
-        {
-            printf(" --(!) No captured frame -- Break!");
-            break;
-        }
-        
-        window.display(frame);
-        
-        int c = waitKey(10);
-        window.onKeyPress(c);
 
-	if((char)c == 27) {break;} // escape
+    if (!usingCamera){
+        window.setImageFolder(imgseq);
+        window.t->join();
     }
-	
+    else {
+        Mat frame;
+        while (window.running){
+            capture->getImage(frame);
+            window.display(frame);
+        }
+    }
+
+
+    delete capture;
 	return 0;
 }

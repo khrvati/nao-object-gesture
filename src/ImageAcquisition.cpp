@@ -46,6 +46,7 @@ NAOCamera::NAOCamera(const std::string IP, int port) : camproxy(IP, port){
 
 NAOCamera::~NAOCamera(){
     camproxy.unsubscribe(clientName);
+    std::cout << "Disconnecting from NAO camera" << std::endl;
 }
 
 bool NAOCamera::getImage(cv::Mat &outputImage){
@@ -63,50 +64,3 @@ bool NAOCamera::getImage(cv::Mat &outputImage){
     }
     return true;
 }
-
-ImgSequence::ImgSequence(std::string dn): dirname(dn), itr(dn), lastimg(boost::get_system_time()){
-}
-
-bool ImgSequence::getImage(Mat &outputImage)
-{
-    directory_iterator end_itr;
-    if (itr==end_itr){
-        itr = directory_iterator(dirname);
-    }
-    path filename = itr->path();
-    while (is_directory(filename) && itr!=end_itr){
-        std::cout << filename << std::endl;
-        itr++;
-        if (itr!=end_itr){
-            filename = itr->path();
-        }
-    }
-    if (itr==end_itr){
-        itr = directory_iterator(dirname);
-        filename = itr->path();
-    }
-    while (is_directory(filename) && itr!=end_itr){
-        itr++;
-        if (itr!=end_itr){
-            filename = itr->path();
-        }
-    }
-    if (itr==end_itr){
-        outputImage = Mat();
-        return false;
-    }
-
-    Mat im = imread(filename.string());
-    resize(im, outputImage, Size(160,120));
-
-    boost::posix_time::time_duration diff = boost::get_system_time() - lastimg;
-
-    if (diff.total_milliseconds()>800){
-        lastimg = boost::get_system_time();
-        itr++;
-    }
-    return true;
-}
-
-
-

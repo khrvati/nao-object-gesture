@@ -1,0 +1,205 @@
+\hypertarget{classNAOObjectGesture}{\section{\-N\-A\-O\-Object\-Gesture \-Class \-Reference}
+\label{classNAOObjectGesture}\index{\-N\-A\-O\-Object\-Gesture@{\-N\-A\-O\-Object\-Gesture}}
+}
+
+
+{\ttfamily \#include $<$\-N\-A\-O\-Object\-Gesture.\-h$>$}
+
+\subsection*{\-Data \-Structures}
+\begin{DoxyCompactItemize}
+\item 
+struct \hyperlink{structNAOObjectGesture_1_1Impl}{\-Impl}
+\end{DoxyCompactItemize}
+\subsection*{\-Public \-Member \-Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classNAOObjectGesture_a7160c62b2868ea3cc1459a188e5130a8}{\-N\-A\-O\-Object\-Gesture} (boost\-::shared\-\_\-ptr$<$ \-A\-L\-::\-A\-L\-Broker $>$ p\-Broker, const std\-::string \&p\-Name)
+\item 
+\hyperlink{classNAOObjectGesture_afda6bd041c7f9b32940db085875cff5c}{$\sim$\-N\-A\-O\-Object\-Gesture} ()
+\item 
+virtual void \hyperlink{classNAOObjectGesture_af20fb7b73b00df0763522ee8ecfb2d82}{init} ()
+\item 
+void \hyperlink{classNAOObjectGesture_a938a55da2c887cb415c13b06b5ea77d9}{exit} ()
+\item 
+void \hyperlink{classNAOObjectGesture_a6177da67488eb2e9de50260f10b315cf}{start\-Tracker} (const int \&milli, const int \&cam\-Idx)
+\item 
+void \hyperlink{classNAOObjectGesture_ad69c7cf7867833943e0ec64688c740a1}{stop\-Tracker} ()
+\item 
+void \hyperlink{classNAOObjectGesture_af847ccebd8b6f27682b4dcb56f015034}{load\-Dataset} (const std\-::string \&data\-Folder)
+\item 
+\-A\-L\-::\-A\-L\-Value \hyperlink{classNAOObjectGesture_a0d344fcf7726a6c52edadbfbff6c3274}{get\-Object\-List} (const int \&data\-Code)
+\item 
+\-A\-L\-::\-A\-L\-Value \hyperlink{classNAOObjectGesture_af3b6fb604b25e8184f4052b0ace6bcd1}{get\-Object\-Data} (const \-A\-L\-::\-A\-L\-Value \&object\-Ids, const int \&data\-Code)
+\item 
+bool \hyperlink{classNAOObjectGesture_afad1c86748f8f96f0666221807147d41}{track\-Object} (const std\-::string \&name, const int \&obj\-Id)
+\item 
+bool \hyperlink{classNAOObjectGesture_aba04886e3cabbdc534fd87f91b4afe2e}{focus\-Object} (const int \&obj\-Id)
+\item 
+void \hyperlink{classNAOObjectGesture_ac69cf29efab0bd8fed93e8326bd745b3}{stop\-Focus} ()
+\item 
+void \hyperlink{classNAOObjectGesture_a962b107853f1a96ed9d1acd09c99dcdc}{add\-Gesture} (const std\-::string \&name, const \-A\-L\-::\-A\-L\-Value \&dir\-List)
+\item 
+void \hyperlink{classNAOObjectGesture_a8dab51061ff97c9d2bf44fd8512e2c66}{remove\-Gesture} (const std\-::string \&name)
+\item 
+\-A\-L\-::\-A\-L\-Value \hyperlink{classNAOObjectGesture_a856d77df953646fcdfe311dd316ed255}{get\-Gesture\-List} ()
+\item 
+\-A\-L\-::\-A\-L\-Value \hyperlink{classNAOObjectGesture_ab645beebf918bfee7c029297e082293a}{get\-Event\-List} ()
+\item 
+bool \hyperlink{classNAOObjectGesture_ac5c74a491e3cad4a245ca6aef6c4d97d}{remove\-Event} (const std\-::string \&name)
+\item 
+void \hyperlink{classNAOObjectGesture_aa279bfb54b4325ef25b45dd2e6979b78}{remove\-Object\-Kind} (const int \&id)
+\item 
+void \hyperlink{classNAOObjectGesture_a4ac243d9067530b558db1eb9c4141d4a}{clear\-Event\-Traj} (const std\-::string \&name)
+\end{DoxyCompactItemize}
+
+
+\subsection{\-Constructor \& \-Destructor \-Documentation}
+\hypertarget{classNAOObjectGesture_a7160c62b2868ea3cc1459a188e5130a8}{\index{\-N\-A\-O\-Object\-Gesture@{\-N\-A\-O\-Object\-Gesture}!\-N\-A\-O\-Object\-Gesture@{\-N\-A\-O\-Object\-Gesture}}
+\index{\-N\-A\-O\-Object\-Gesture@{\-N\-A\-O\-Object\-Gesture}!NAOObjectGesture@{\-N\-A\-O\-Object\-Gesture}}
+\subsubsection[{\-N\-A\-O\-Object\-Gesture}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-N\-A\-O\-Object\-Gesture\-::\-N\-A\-O\-Object\-Gesture} (
+\begin{DoxyParamCaption}
+\item[{boost\-::shared\-\_\-ptr$<$ \-A\-L\-::\-A\-L\-Broker $>$}]{p\-Broker, }
+\item[{const std\-::string \&}]{p\-Name}
+\end{DoxyParamCaption}
+)}}\label{classNAOObjectGesture_a7160c62b2868ea3cc1459a188e5130a8}
+\hypertarget{classNAOObjectGesture_afda6bd041c7f9b32940db085875cff5c}{\index{\-N\-A\-O\-Object\-Gesture@{\-N\-A\-O\-Object\-Gesture}!$\sim$\-N\-A\-O\-Object\-Gesture@{$\sim$\-N\-A\-O\-Object\-Gesture}}
+\index{$\sim$\-N\-A\-O\-Object\-Gesture@{$\sim$\-N\-A\-O\-Object\-Gesture}!NAOObjectGesture@{\-N\-A\-O\-Object\-Gesture}}
+\subsubsection[{$\sim$\-N\-A\-O\-Object\-Gesture}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-N\-A\-O\-Object\-Gesture\-::$\sim$\-N\-A\-O\-Object\-Gesture} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{classNAOObjectGesture_afda6bd041c7f9b32940db085875cff5c}
+
+
+\subsection{\-Member \-Function \-Documentation}
+\hypertarget{classNAOObjectGesture_a962b107853f1a96ed9d1acd09c99dcdc}{\index{\-N\-A\-O\-Object\-Gesture@{\-N\-A\-O\-Object\-Gesture}!add\-Gesture@{add\-Gesture}}
+\index{add\-Gesture@{add\-Gesture}!NAOObjectGesture@{\-N\-A\-O\-Object\-Gesture}}
+\subsubsection[{add\-Gesture}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf \-N\-A\-O\-Object\-Gesture\-::add\-Gesture} (
+\begin{DoxyParamCaption}
+\item[{const std\-::string \&}]{name, }
+\item[{const \-A\-L\-::\-A\-L\-Value \&}]{dir\-List}
+\end{DoxyParamCaption}
+)}}\label{classNAOObjectGesture_a962b107853f1a96ed9d1acd09c99dcdc}
+\hypertarget{classNAOObjectGesture_a4ac243d9067530b558db1eb9c4141d4a}{\index{\-N\-A\-O\-Object\-Gesture@{\-N\-A\-O\-Object\-Gesture}!clear\-Event\-Traj@{clear\-Event\-Traj}}
+\index{clear\-Event\-Traj@{clear\-Event\-Traj}!NAOObjectGesture@{\-N\-A\-O\-Object\-Gesture}}
+\subsubsection[{clear\-Event\-Traj}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf \-N\-A\-O\-Object\-Gesture\-::clear\-Event\-Traj} (
+\begin{DoxyParamCaption}
+\item[{const std\-::string \&}]{name}
+\end{DoxyParamCaption}
+)}}\label{classNAOObjectGesture_a4ac243d9067530b558db1eb9c4141d4a}
+\hypertarget{classNAOObjectGesture_a938a55da2c887cb415c13b06b5ea77d9}{\index{\-N\-A\-O\-Object\-Gesture@{\-N\-A\-O\-Object\-Gesture}!exit@{exit}}
+\index{exit@{exit}!NAOObjectGesture@{\-N\-A\-O\-Object\-Gesture}}
+\subsubsection[{exit}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf \-N\-A\-O\-Object\-Gesture\-::exit} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{classNAOObjectGesture_a938a55da2c887cb415c13b06b5ea77d9}
+\hypertarget{classNAOObjectGesture_aba04886e3cabbdc534fd87f91b4afe2e}{\index{\-N\-A\-O\-Object\-Gesture@{\-N\-A\-O\-Object\-Gesture}!focus\-Object@{focus\-Object}}
+\index{focus\-Object@{focus\-Object}!NAOObjectGesture@{\-N\-A\-O\-Object\-Gesture}}
+\subsubsection[{focus\-Object}]{\setlength{\rightskip}{0pt plus 5cm}bool {\bf \-N\-A\-O\-Object\-Gesture\-::focus\-Object} (
+\begin{DoxyParamCaption}
+\item[{const int \&}]{obj\-Id}
+\end{DoxyParamCaption}
+)}}\label{classNAOObjectGesture_aba04886e3cabbdc534fd87f91b4afe2e}
+\hypertarget{classNAOObjectGesture_ab645beebf918bfee7c029297e082293a}{\index{\-N\-A\-O\-Object\-Gesture@{\-N\-A\-O\-Object\-Gesture}!get\-Event\-List@{get\-Event\-List}}
+\index{get\-Event\-List@{get\-Event\-List}!NAOObjectGesture@{\-N\-A\-O\-Object\-Gesture}}
+\subsubsection[{get\-Event\-List}]{\setlength{\rightskip}{0pt plus 5cm}\-A\-L\-::\-A\-L\-Value {\bf \-N\-A\-O\-Object\-Gesture\-::get\-Event\-List} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{classNAOObjectGesture_ab645beebf918bfee7c029297e082293a}
+\hypertarget{classNAOObjectGesture_a856d77df953646fcdfe311dd316ed255}{\index{\-N\-A\-O\-Object\-Gesture@{\-N\-A\-O\-Object\-Gesture}!get\-Gesture\-List@{get\-Gesture\-List}}
+\index{get\-Gesture\-List@{get\-Gesture\-List}!NAOObjectGesture@{\-N\-A\-O\-Object\-Gesture}}
+\subsubsection[{get\-Gesture\-List}]{\setlength{\rightskip}{0pt plus 5cm}\-A\-L\-::\-A\-L\-Value {\bf \-N\-A\-O\-Object\-Gesture\-::get\-Gesture\-List} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{classNAOObjectGesture_a856d77df953646fcdfe311dd316ed255}
+\hypertarget{classNAOObjectGesture_af3b6fb604b25e8184f4052b0ace6bcd1}{\index{\-N\-A\-O\-Object\-Gesture@{\-N\-A\-O\-Object\-Gesture}!get\-Object\-Data@{get\-Object\-Data}}
+\index{get\-Object\-Data@{get\-Object\-Data}!NAOObjectGesture@{\-N\-A\-O\-Object\-Gesture}}
+\subsubsection[{get\-Object\-Data}]{\setlength{\rightskip}{0pt plus 5cm}\-A\-L\-::\-A\-L\-Value {\bf \-N\-A\-O\-Object\-Gesture\-::get\-Object\-Data} (
+\begin{DoxyParamCaption}
+\item[{const \-A\-L\-::\-A\-L\-Value \&}]{object\-Ids, }
+\item[{const int \&}]{data\-Code}
+\end{DoxyParamCaption}
+)}}\label{classNAOObjectGesture_af3b6fb604b25e8184f4052b0ace6bcd1}
+\hypertarget{classNAOObjectGesture_a0d344fcf7726a6c52edadbfbff6c3274}{\index{\-N\-A\-O\-Object\-Gesture@{\-N\-A\-O\-Object\-Gesture}!get\-Object\-List@{get\-Object\-List}}
+\index{get\-Object\-List@{get\-Object\-List}!NAOObjectGesture@{\-N\-A\-O\-Object\-Gesture}}
+\subsubsection[{get\-Object\-List}]{\setlength{\rightskip}{0pt plus 5cm}\-A\-L\-::\-A\-L\-Value {\bf \-N\-A\-O\-Object\-Gesture\-::get\-Object\-List} (
+\begin{DoxyParamCaption}
+\item[{const int \&}]{data\-Code}
+\end{DoxyParamCaption}
+)}}\label{classNAOObjectGesture_a0d344fcf7726a6c52edadbfbff6c3274}
+data\-Code is any combination of\-: 1\-: object timestamp 2\-: object kind 4\-: object centroid point 8\-: object area 16\-: list of recognized gestures
+
+\-Data is returned in that exact order (timestamp, then centroid, then area etc.) \-Returned array always starts with object id \hypertarget{classNAOObjectGesture_af20fb7b73b00df0763522ee8ecfb2d82}{\index{\-N\-A\-O\-Object\-Gesture@{\-N\-A\-O\-Object\-Gesture}!init@{init}}
+\index{init@{init}!NAOObjectGesture@{\-N\-A\-O\-Object\-Gesture}}
+\subsubsection[{init}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf \-N\-A\-O\-Object\-Gesture\-::init} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}virtual\mbox{]}}}}\label{classNAOObjectGesture_af20fb7b73b00df0763522ee8ecfb2d82}
+\hypertarget{classNAOObjectGesture_af847ccebd8b6f27682b4dcb56f015034}{\index{\-N\-A\-O\-Object\-Gesture@{\-N\-A\-O\-Object\-Gesture}!load\-Dataset@{load\-Dataset}}
+\index{load\-Dataset@{load\-Dataset}!NAOObjectGesture@{\-N\-A\-O\-Object\-Gesture}}
+\subsubsection[{load\-Dataset}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf \-N\-A\-O\-Object\-Gesture\-::load\-Dataset} (
+\begin{DoxyParamCaption}
+\item[{const std\-::string \&}]{data\-Folder}
+\end{DoxyParamCaption}
+)}}\label{classNAOObjectGesture_af847ccebd8b6f27682b4dcb56f015034}
+\hypertarget{classNAOObjectGesture_ac5c74a491e3cad4a245ca6aef6c4d97d}{\index{\-N\-A\-O\-Object\-Gesture@{\-N\-A\-O\-Object\-Gesture}!remove\-Event@{remove\-Event}}
+\index{remove\-Event@{remove\-Event}!NAOObjectGesture@{\-N\-A\-O\-Object\-Gesture}}
+\subsubsection[{remove\-Event}]{\setlength{\rightskip}{0pt plus 5cm}bool {\bf \-N\-A\-O\-Object\-Gesture\-::remove\-Event} (
+\begin{DoxyParamCaption}
+\item[{const std\-::string \&}]{name}
+\end{DoxyParamCaption}
+)}}\label{classNAOObjectGesture_ac5c74a491e3cad4a245ca6aef6c4d97d}
+\hypertarget{classNAOObjectGesture_a8dab51061ff97c9d2bf44fd8512e2c66}{\index{\-N\-A\-O\-Object\-Gesture@{\-N\-A\-O\-Object\-Gesture}!remove\-Gesture@{remove\-Gesture}}
+\index{remove\-Gesture@{remove\-Gesture}!NAOObjectGesture@{\-N\-A\-O\-Object\-Gesture}}
+\subsubsection[{remove\-Gesture}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf \-N\-A\-O\-Object\-Gesture\-::remove\-Gesture} (
+\begin{DoxyParamCaption}
+\item[{const std\-::string \&}]{name}
+\end{DoxyParamCaption}
+)}}\label{classNAOObjectGesture_a8dab51061ff97c9d2bf44fd8512e2c66}
+\hypertarget{classNAOObjectGesture_aa279bfb54b4325ef25b45dd2e6979b78}{\index{\-N\-A\-O\-Object\-Gesture@{\-N\-A\-O\-Object\-Gesture}!remove\-Object\-Kind@{remove\-Object\-Kind}}
+\index{remove\-Object\-Kind@{remove\-Object\-Kind}!NAOObjectGesture@{\-N\-A\-O\-Object\-Gesture}}
+\subsubsection[{remove\-Object\-Kind}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf \-N\-A\-O\-Object\-Gesture\-::remove\-Object\-Kind} (
+\begin{DoxyParamCaption}
+\item[{const int \&}]{id}
+\end{DoxyParamCaption}
+)}}\label{classNAOObjectGesture_aa279bfb54b4325ef25b45dd2e6979b78}
+\hypertarget{classNAOObjectGesture_a6177da67488eb2e9de50260f10b315cf}{\index{\-N\-A\-O\-Object\-Gesture@{\-N\-A\-O\-Object\-Gesture}!start\-Tracker@{start\-Tracker}}
+\index{start\-Tracker@{start\-Tracker}!NAOObjectGesture@{\-N\-A\-O\-Object\-Gesture}}
+\subsubsection[{start\-Tracker}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf \-N\-A\-O\-Object\-Gesture\-::start\-Tracker} (
+\begin{DoxyParamCaption}
+\item[{const int \&}]{milli, }
+\item[{const int \&}]{cam\-Idx}
+\end{DoxyParamCaption}
+)}}\label{classNAOObjectGesture_a6177da67488eb2e9de50260f10b315cf}
+\hypertarget{classNAOObjectGesture_ac69cf29efab0bd8fed93e8326bd745b3}{\index{\-N\-A\-O\-Object\-Gesture@{\-N\-A\-O\-Object\-Gesture}!stop\-Focus@{stop\-Focus}}
+\index{stop\-Focus@{stop\-Focus}!NAOObjectGesture@{\-N\-A\-O\-Object\-Gesture}}
+\subsubsection[{stop\-Focus}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf \-N\-A\-O\-Object\-Gesture\-::stop\-Focus} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{classNAOObjectGesture_ac69cf29efab0bd8fed93e8326bd745b3}
+\hypertarget{classNAOObjectGesture_ad69c7cf7867833943e0ec64688c740a1}{\index{\-N\-A\-O\-Object\-Gesture@{\-N\-A\-O\-Object\-Gesture}!stop\-Tracker@{stop\-Tracker}}
+\index{stop\-Tracker@{stop\-Tracker}!NAOObjectGesture@{\-N\-A\-O\-Object\-Gesture}}
+\subsubsection[{stop\-Tracker}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf \-N\-A\-O\-Object\-Gesture\-::stop\-Tracker} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{classNAOObjectGesture_ad69c7cf7867833943e0ec64688c740a1}
+\hypertarget{classNAOObjectGesture_afad1c86748f8f96f0666221807147d41}{\index{\-N\-A\-O\-Object\-Gesture@{\-N\-A\-O\-Object\-Gesture}!track\-Object@{track\-Object}}
+\index{track\-Object@{track\-Object}!NAOObjectGesture@{\-N\-A\-O\-Object\-Gesture}}
+\subsubsection[{track\-Object}]{\setlength{\rightskip}{0pt plus 5cm}bool {\bf \-N\-A\-O\-Object\-Gesture\-::track\-Object} (
+\begin{DoxyParamCaption}
+\item[{const std\-::string \&}]{name, }
+\item[{const int \&}]{obj\-Id}
+\end{DoxyParamCaption}
+)}}\label{classNAOObjectGesture_afad1c86748f8f96f0666221807147d41}
+
+
+\-The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+include/\hyperlink{NAOObjectGesture_8h}{\-N\-A\-O\-Object\-Gesture.\-h}\item 
+src/\hyperlink{NAOObjectGesture_8cpp}{\-N\-A\-O\-Object\-Gesture.\-cpp}\end{DoxyCompactItemize}

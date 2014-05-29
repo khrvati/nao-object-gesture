@@ -1,0 +1,143 @@
+\hypertarget{classColorHistBackProject}{\section{\-Color\-Hist\-Back\-Project \-Class \-Reference}
+\label{classColorHistBackProject}\index{\-Color\-Hist\-Back\-Project@{\-Color\-Hist\-Back\-Project}}
+}
+
+
+2\-D histogram-\/based image flattening class.  
+
+
+
+
+{\ttfamily \#include $<$\-Img\-Proc\-Pipeline.\-hpp$>$}
+
+\-Inheritance diagram for \-Color\-Hist\-Back\-Project\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=3.000000cm]{classColorHistBackProject}
+\end{center}
+\end{figure}
+\subsection*{\-Public \-Member \-Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classColorHistBackProject_aaea72e6f5c80a0c1179b7a63b6f63710}{\-Color\-Hist\-Back\-Project} ()
+\item 
+\hyperlink{classColorHistBackProject_a2b531e8c82d9936cfaa459473e7f2691}{\-Color\-Hist\-Back\-Project} (int code, const int $\ast$histogram\-Size)
+\item 
+\hyperlink{classColorHistBackProject_a26852208ede0f52b8392ce15f9bf6a78}{\-Color\-Hist\-Back\-Project} (int code, const int $\ast$histogram\-Size, \-String filename)
+\item 
+virtual void \hyperlink{classColorHistBackProject_a380a44d3e7b934d5910bc794d918624b}{hist\-From\-Image} (const \-Mat image)
+\item 
+void \hyperlink{classColorHistBackProject_ada7dfb4f07fb78fd10beb4aa6392d5d0}{update\-Histogram} (const \-Mat image, const \-Mat mask)
+\item 
+virtual void \hyperlink{classColorHistBackProject_a071d75f28f0579b6c6e3479584828366}{process} (const \-Mat input\-Image, \-Mat $\ast$output\-Image)
+\end{DoxyCompactItemize}
+\subsection*{\-Protected \-Member \-Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \hyperlink{classColorHistBackProject_a7c164c0505ebeba18304157886278c7c}{preprocess} (const \-Mat image, \-Mat $\ast$output\-Image)
+\end{DoxyCompactItemize}
+\subsection*{\-Protected \-Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\-Mat \hyperlink{classColorHistBackProject_a0026829cd3ae014ee1c59f82b18f93b2}{histogram\-Mask}
+\item 
+int \hyperlink{classColorHistBackProject_a93f35d7cce470d9a6f70666dc4772d1e}{colorspace\-Code}
+\item 
+\hyperlink{classHistogram}{\-Histogram} \hyperlink{classColorHistBackProject_a08e48d973198cad49099033b69350928}{obj\-Histogram}
+\end{DoxyCompactItemize}
+
+
+\subsection{\-Detailed \-Description}
+2\-D histogram-\/based image flattening class. 
+
+\-Supports \-H\-S\-V, \-H\-L\-S and \-Y\-U\-V colorspaces. 
+
+\subsection{\-Constructor \& \-Destructor \-Documentation}
+\hypertarget{classColorHistBackProject_aaea72e6f5c80a0c1179b7a63b6f63710}{\index{\-Color\-Hist\-Back\-Project@{\-Color\-Hist\-Back\-Project}!\-Color\-Hist\-Back\-Project@{\-Color\-Hist\-Back\-Project}}
+\index{\-Color\-Hist\-Back\-Project@{\-Color\-Hist\-Back\-Project}!ColorHistBackProject@{\-Color\-Hist\-Back\-Project}}
+\subsubsection[{\-Color\-Hist\-Back\-Project}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-Color\-Hist\-Back\-Project\-::\-Color\-Hist\-Back\-Project} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{classColorHistBackProject_aaea72e6f5c80a0c1179b7a63b6f63710}
+\hypertarget{classColorHistBackProject_a2b531e8c82d9936cfaa459473e7f2691}{\index{\-Color\-Hist\-Back\-Project@{\-Color\-Hist\-Back\-Project}!\-Color\-Hist\-Back\-Project@{\-Color\-Hist\-Back\-Project}}
+\index{\-Color\-Hist\-Back\-Project@{\-Color\-Hist\-Back\-Project}!ColorHistBackProject@{\-Color\-Hist\-Back\-Project}}
+\subsubsection[{\-Color\-Hist\-Back\-Project}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-Color\-Hist\-Back\-Project\-::\-Color\-Hist\-Back\-Project} (
+\begin{DoxyParamCaption}
+\item[{int}]{code, }
+\item[{const int $\ast$}]{histogram\-Size}
+\end{DoxyParamCaption}
+)}}\label{classColorHistBackProject_a2b531e8c82d9936cfaa459473e7f2691}
+\hypertarget{classColorHistBackProject_a26852208ede0f52b8392ce15f9bf6a78}{\index{\-Color\-Hist\-Back\-Project@{\-Color\-Hist\-Back\-Project}!\-Color\-Hist\-Back\-Project@{\-Color\-Hist\-Back\-Project}}
+\index{\-Color\-Hist\-Back\-Project@{\-Color\-Hist\-Back\-Project}!ColorHistBackProject@{\-Color\-Hist\-Back\-Project}}
+\subsubsection[{\-Color\-Hist\-Back\-Project}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-Color\-Hist\-Back\-Project\-::\-Color\-Hist\-Back\-Project} (
+\begin{DoxyParamCaption}
+\item[{int}]{code, }
+\item[{const int $\ast$}]{histogram\-Size, }
+\item[{\-String}]{filename}
+\end{DoxyParamCaption}
+)}}\label{classColorHistBackProject_a26852208ede0f52b8392ce15f9bf6a78}
+
+
+\subsection{\-Member \-Function \-Documentation}
+\hypertarget{classColorHistBackProject_a380a44d3e7b934d5910bc794d918624b}{\index{\-Color\-Hist\-Back\-Project@{\-Color\-Hist\-Back\-Project}!hist\-From\-Image@{hist\-From\-Image}}
+\index{hist\-From\-Image@{hist\-From\-Image}!ColorHistBackProject@{\-Color\-Hist\-Back\-Project}}
+\subsubsection[{hist\-From\-Image}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf \-Color\-Hist\-Back\-Project\-::hist\-From\-Image} (
+\begin{DoxyParamCaption}
+\item[{const \-Mat}]{image}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}virtual\mbox{]}}}}\label{classColorHistBackProject_a380a44d3e7b934d5910bc794d918624b}
+
+
+\-Reimplemented in \hyperlink{classGMMColorHistBackProject_aa52c626599ec2dc46fd5dbe7d0aab11a}{\-G\-M\-M\-Color\-Hist\-Back\-Project}, and \hyperlink{classBayesColorHistBackProject_a65a2a0df392e5d905cb04cb1ada83b9f}{\-Bayes\-Color\-Hist\-Back\-Project}.
+
+\hypertarget{classColorHistBackProject_a7c164c0505ebeba18304157886278c7c}{\index{\-Color\-Hist\-Back\-Project@{\-Color\-Hist\-Back\-Project}!preprocess@{preprocess}}
+\index{preprocess@{preprocess}!ColorHistBackProject@{\-Color\-Hist\-Back\-Project}}
+\subsubsection[{preprocess}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf \-Color\-Hist\-Back\-Project\-::preprocess} (
+\begin{DoxyParamCaption}
+\item[{const \-Mat}]{image, }
+\item[{\-Mat $\ast$}]{output\-Image}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}protected\mbox{]}}}}\label{classColorHistBackProject_a7c164c0505ebeba18304157886278c7c}
+\hypertarget{classColorHistBackProject_a071d75f28f0579b6c6e3479584828366}{\index{\-Color\-Hist\-Back\-Project@{\-Color\-Hist\-Back\-Project}!process@{process}}
+\index{process@{process}!ColorHistBackProject@{\-Color\-Hist\-Back\-Project}}
+\subsubsection[{process}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf \-Color\-Hist\-Back\-Project\-::process} (
+\begin{DoxyParamCaption}
+\item[{const \-Mat}]{input\-Image, }
+\item[{\-Mat $\ast$}]{output\-Image}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}virtual\mbox{]}}}}\label{classColorHistBackProject_a071d75f28f0579b6c6e3479584828366}
+
+
+\-Implements \hyperlink{classProcessingElement_ad231c2198b3c9bbc562328ee84a972ce}{\-Processing\-Element}.
+
+
+
+\-Reimplemented in \hyperlink{classGMMColorHistBackProject_aee0c6ee3a5f9fa9a8b66590cb9ba5c8a}{\-G\-M\-M\-Color\-Hist\-Back\-Project}, and \hyperlink{classBayesColorHistBackProject_aa191428914b3257f2a0945ba090f6d22}{\-Bayes\-Color\-Hist\-Back\-Project}.
+
+\hypertarget{classColorHistBackProject_ada7dfb4f07fb78fd10beb4aa6392d5d0}{\index{\-Color\-Hist\-Back\-Project@{\-Color\-Hist\-Back\-Project}!update\-Histogram@{update\-Histogram}}
+\index{update\-Histogram@{update\-Histogram}!ColorHistBackProject@{\-Color\-Hist\-Back\-Project}}
+\subsubsection[{update\-Histogram}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf \-Color\-Hist\-Back\-Project\-::update\-Histogram} (
+\begin{DoxyParamCaption}
+\item[{const \-Mat}]{image, }
+\item[{const \-Mat}]{mask}
+\end{DoxyParamCaption}
+)}}\label{classColorHistBackProject_ada7dfb4f07fb78fd10beb4aa6392d5d0}
+
+
+\subsection{\-Field \-Documentation}
+\hypertarget{classColorHistBackProject_a93f35d7cce470d9a6f70666dc4772d1e}{\index{\-Color\-Hist\-Back\-Project@{\-Color\-Hist\-Back\-Project}!colorspace\-Code@{colorspace\-Code}}
+\index{colorspace\-Code@{colorspace\-Code}!ColorHistBackProject@{\-Color\-Hist\-Back\-Project}}
+\subsubsection[{colorspace\-Code}]{\setlength{\rightskip}{0pt plus 5cm}int {\bf \-Color\-Hist\-Back\-Project\-::colorspace\-Code}\hspace{0.3cm}{\ttfamily  \mbox{[}protected\mbox{]}}}}\label{classColorHistBackProject_a93f35d7cce470d9a6f70666dc4772d1e}
+\hypertarget{classColorHistBackProject_a0026829cd3ae014ee1c59f82b18f93b2}{\index{\-Color\-Hist\-Back\-Project@{\-Color\-Hist\-Back\-Project}!histogram\-Mask@{histogram\-Mask}}
+\index{histogram\-Mask@{histogram\-Mask}!ColorHistBackProject@{\-Color\-Hist\-Back\-Project}}
+\subsubsection[{histogram\-Mask}]{\setlength{\rightskip}{0pt plus 5cm}\-Mat {\bf \-Color\-Hist\-Back\-Project\-::histogram\-Mask}\hspace{0.3cm}{\ttfamily  \mbox{[}protected\mbox{]}}}}\label{classColorHistBackProject_a0026829cd3ae014ee1c59f82b18f93b2}
+\hypertarget{classColorHistBackProject_a08e48d973198cad49099033b69350928}{\index{\-Color\-Hist\-Back\-Project@{\-Color\-Hist\-Back\-Project}!obj\-Histogram@{obj\-Histogram}}
+\index{obj\-Histogram@{obj\-Histogram}!ColorHistBackProject@{\-Color\-Hist\-Back\-Project}}
+\subsubsection[{obj\-Histogram}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-Histogram} {\bf \-Color\-Hist\-Back\-Project\-::obj\-Histogram}\hspace{0.3cm}{\ttfamily  \mbox{[}protected\mbox{]}}}}\label{classColorHistBackProject_a08e48d973198cad49099033b69350928}
+
+
+\-The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+include/\hyperlink{ImgProcPipeline_8hpp}{\-Img\-Proc\-Pipeline.\-hpp}\item 
+src/\hyperlink{ImgProcPipeline_8cpp}{\-Img\-Proc\-Pipeline.\-cpp}\end{DoxyCompactItemize}
