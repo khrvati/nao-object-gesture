@@ -35,7 +35,7 @@ bool ConnectedCamera::getImage(cv::Mat &outputImage){
 
 
 NAOCamera::NAOCamera(const std::string IP, int port) : camproxy(IP, port){
-    clientName = camproxy.subscribeCamera("ObjectGestureRemote", 0, kVGA, kBGRColorSpace, 20);
+    clientName = camproxy.subscribeCamera("ObjectGestureRemote", 0, kQVGA, kBGRColorSpace, 20);
     /*camproxy.setParam(3, 40);
     camproxy.setParam(11, 1);
     camproxy.setParam(22, 2);
@@ -52,7 +52,7 @@ NAOCamera::~NAOCamera(){
 bool NAOCamera::getImage(cv::Mat &outputImage){
     try{
         ALValue img = camproxy.getImageRemote(clientName);
-        Mat imgHeader = Mat(Size(640, 480), CV_8UC3,  (void*)img[6].GetBinary());
+        Mat imgHeader = Mat(Size(320, 240), CV_8UC3,  (void*)img[6].GetBinary());
         //imgHeader.data = (uchar*) img[6].GetBinary();
         imgHeader.copyTo(outputImage);
         camproxy.releaseImage(clientName);

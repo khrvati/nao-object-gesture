@@ -169,13 +169,9 @@ struct NAOObjectGesture::Impl{
                 }
                 else {
                     qiLogInfo("NAOObjectGesture") << "Lost focus on object " << focusObjectId << std::endl;
-                    motionProxy->setStiffnesses("Head", 0.0);
                     focusObjectId = 0;
                 }
-            } else {
-                motionProxy->setStiffnesses("Head", 0.0);
             }
-
 
             /* manual timestamp from posix_time */
 

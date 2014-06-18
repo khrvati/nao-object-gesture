@@ -301,7 +301,12 @@ RotatedRect TrackedObject::getEllipse(){
     stemp.width = 2*sqrt(l1)*2.0;
     stemp.height = 2*sqrt(l2)*2.0;
     temp.size = stemp;
-    temp.angle = atan2(mxx-l1, -mxy)*180.0f/3.141592653589f;
+    temp.angle = atan2(mxx-l1, -mxy)*180.0f/3.141592653589f;    }
+mxx/=points.size();
+myy/=points.size();
+mxy/=points.size();
+
+
     return temp;
 }
 
