@@ -66,8 +66,8 @@ int main(void)
                 usingCamera = false;
             }
             else {
-                std::string ip = pt.get<string>("Grab settings.IP", "");
-                int port = pt.get<int>("Grab settings.PORT", 0);
+                std::string ip = pt.get<string>("Remote.IP", "");
+                int port = pt.get<int>("Remote.PORT", 0);
                 std::cout << "Connecting to NAO at " << ip << ":" << port <<  std::endl;
                 NAOCamera* camera = new NAOCamera(ip, port);
                 capture = camera;
