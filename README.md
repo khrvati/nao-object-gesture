@@ -41,7 +41,7 @@ Then create an empty worktree folder for your qibuild projects in a location of 
 ```
 Next, create a toolchain to build the module with. If building as a local module, it is recommended that you name the toolchain 'atom114' to be able to use the provided shell script for automatic code compilation and uploading to the robot. Do this by executing the following command:
 ```
-~/worktree$ qitoolchain create atom114 /path/to/your/NAOQI/Cross/Toolchain/**toolchain.xml**
+~/worktree$ qitoolchain create atom114 /path/to/your/NAOQI/Cross/Toolchain/toolchain.xml
 ```
 You can now clone the repo into your worktree. This is done by running
 ```
@@ -62,7 +62,7 @@ Lastly, you should edit your robot's autoload.ini file, located in /home/nao/nao
 ### 3.1 Remote test mode compilation
 The above instructions will work for NAO version 1.14 and a local module. If you would like to compile the module as a remote application which connects to to the robot over the network, first change the TESTMODE option in CMakeLists.txt to ON. Then create a new toolchain for remote building, by running
 ```
-~/worktree$ qitoolchain create remote-toolchain /path/to/your/NAOQI/C++/SDK/**toolchain.xml**
+~/worktree$ qitoolchain create remote-toolchain /path/to/your/NAOQI/C++/SDK/toolchain.xml
 ```
 You can now configure and make the module by running
 
